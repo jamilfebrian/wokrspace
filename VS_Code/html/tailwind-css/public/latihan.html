@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ojuju:wght@200..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="dark:bg-slate-800 dark:text-slate-200">
     <h1 class="text-red-500 font-extrabold text-6xl text-center">Hello World <span class="bg-gradient-to-r from-blue-500 via-red-500 to-green-500 bg-clip-text text-transparent">Hallo Dunia</span></h1>
     <section class="mb-10 itali bg-gradient-to-r from-indigo-300 via-red-500 to-yellow-400">
         <h2 class="text-center font-bold text-lg bg-janda">Spacing</h2>
@@ -31,10 +31,48 @@
         <p class="mb-20 bg-gray-200">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur possimus odit minus pariatur itaque aspernatur vitae dolores officia? Velit sequi labore blanditiis cum asperiores quas laboriosam praesentium ipsa quaerat vero. Error, nam. Distinctio aliquid eos magnam quam ex. A voluptas enim reprehenderit labore, harum praesentium facilis ipsum at tempore quos!</p>
     </section>
 
-    <div class="max-w-xl h-96 bg-[#bada22] mx-auto mt-[42px] overflow-y-scroll bg-local" style="background-image: url('https://source.unsplash.com/1000x600?robot');">
+    <div class="max-w-xl h-96 bg-[#bada22] mx-auto mt-[42px] overflow-y-scroll bg-fixed" style="background-image: url('https://source.unsplash.com/1000x600?robot');">
         <p class="p-5 text-2xl">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ipsa maiores dolorem atque incidunt sapiente nisi sunt dolor? Eos nam, iure exercitationem odio, doloribus ut incidunt excepturi, fugit possimus consequatur porro quas minima iusto autem cum iste dolores dolorum modi adipisci repudiandae in quidem libero nulla eum? Atque iure minima quae harum nesciunt deserunt officiis praesentium repellat inventore, perspiciatis, dignissimos ipsa voluptate minus, veniam hic! Corporis tempore pariatur mollitia dignissimos labore, odio, velit repudiandae inventore sit beatae cum at aliquam veritatis, officiis maxime perspiciatis aspernatur consequatur asperiores molestias! Eveniet quaerat vel accusamus laudantium laboriosam sequi explicabo nisi odit blanditiis deserunt, eos illo, voluptates ex amet temporibus quasi magnam quo. Veniam atque dignissimos eos sint tenetur voluptas nostrum perferendis. Dolorum molestiae quis nulla suscipit magnam esse, nesciunt, cupiditate quam pariatur, illum quas. Ad distinctio explicabo debitis rerum repellendus velit reiciendis porro quia esse totam quis doloribus error molestiae facere inventore earum blanditiis, itaque natus ex? Quidem modi a nam reprehenderit, ratione error impedit blanditiis quaerat quibusdam inventore officia, neque, at iure quasi autem odit incidunt natus eos commodi voluptas quis sunt laboriosam vero. Adipisci ratione fugiat libero assumenda sunt animi dolorum totam architecto, odit vitae dolorem voluptates omnis eius mollitia. Fugit, corporis.</p>
     </div>
-    <div class="mb-96 h-[30rem] w-[30rem] bg-tomato" ></div>
+    <div class="mt-10 mb-10 h-[10rem] w-[10rem] bg-tomato" ></div>
+
+    <div class="mt-32 mb-32 max-w-xl mx-auto h-96 bg-slate-300 bg-contain bg-no-repeat bg-center rounded-2xl border-8 border-solid shadow-xl shadow-slate-600 border-black opacity-80 overflow-hidden bg-blend-multiply hover:blur-sm brightness-75 flex" style="background-image: url(image/1.jpg)">
+        <!-- <div class="w-full h-full bg-blue-200 mix-blend-multiply"></div> -->
+        <div class="w-[150px] h-[150px] bg-white/20  m-auto backdrop-blur-sm rounded-full"></div>
+    </div>
+
+    <hr class="my-10" >
+
+    <div class="flex justify-center">
+        <span class="text-sm text-slate-500 mr-2">Light</span>
+        <input placeholder="toggle" type="checkbox" id="toggle" class="hidden">
+        <label for="toggle">
+            <div class="w-9 h-5 bg-slate-500 rounded-full flex items-center p-1 cursor-pointer  ">
+                <div class="w-4 h-4 bg-blue-500 rounded-full "></div>
+            </div>
+        </label>
+        <span class="text-sm text-slate-500 ml-2">Dark</span>
+    </div>
+
+    <button class="my-10 bg-blue-600 py-2 px-5 rounded-full text-white font-bold font-roboto block mx-auto hover:bg-blue-800 active:bg-blue-900 focus:ring focus:ring-blue-300 dark:bg-slate-300 dark:text-slate-800 dark:hover:text-slate-900 dark:hover:bg-slate-100" >Simpan</button>
+
+
+
+    <div class="max-w-lg my-10 group border border-slate-200 rounded-xl mx-auto p-5 shadow-md font-ojuju hover:bg-slate-400  ">
+        <h5 class="font-bold text-slate-600 text-lg mb-3 group-hover:text-white">My Card</h5>
+        <p class="group-hover:text-white selection:bg-green-700 selection:text-black first-line:uppercase first-line:tracking-widest first-letter:text-7xl first-letter:float-left first-letter:mr-3">Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis, inventore! Laboriosam possimus quidem eius voluptate! Mollitia error at minus ab labore, quisquam assumenda officiis saepe, omnis ad, adipisci odio tempora!</p>
+    </div>
+
+    <div class="max-w-lg border border-slate-200 rounded-xl mx-auto shadow-md font-ojuju p-5 ">
+        <form action="">
+            <label for="">
+                <span class="block font-semibold mb-1 text-slate-700 after:content-['*'] after:text-pink-500 after:ml-0.5 ">Email</span>            
+                <input type="email" id="email" placeholder="masukkan email.." class="px-3 py-2 my-2 border shadow rounded w-full block text-sm placeholder:text-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 invalid:text-pink-700 invalid:focus:ring-pink-700 invalid:focus:border-pink-700 peer">
+                <p class="text-sm m-1 text-pink-700 invisible peer-invalid:visible">email tidak valid!</p>
+            </label>
+        </form>
+    </div>
+    <div class="my-96"></div>
 
 </body>
 </html>
