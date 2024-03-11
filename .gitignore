@@ -1,0 +1,24 @@
+*.exe
+New folder/
+.vscode/
+__pycache__/
+
+Images/
+Resources/
+resources/
+image/
+video/
+Output/
+Test/
+
+Modul Pembelajaran IoT (bedabisa.com)/
+Dokumentasi/
+Judul Lama/
+Penelitian Relevan/
+Referensi/
+Rujukan/
+image/
+Surat-surat/
+
+.firebase/
+node_modules/

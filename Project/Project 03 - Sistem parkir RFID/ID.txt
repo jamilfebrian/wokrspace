@@ -1,0 +1,19 @@
+Card UID: C4 23 5C 07
+Card SAK: 08
+PICC type: MIFARE 1KB
+
+Card UID: 47 E2 AF 6B  //ID card robotic
+Card SAK: 08
+PICC type: MIFARE 1KB
+
+Card UID: 5A E8 8D D4
+Card SAK: 08
+PICC type: MIFARE 1KB
+
+Card UID: 73 EA D8 1B
+Card SAK: 08
+PICC type: MIFARE 1KB
+
+Card UID: CC C3 66 3B
+Card SAK: 08
+PICC type: MIFARE 1KB

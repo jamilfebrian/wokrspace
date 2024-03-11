@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESP IoT Firebase App</title>
+
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDIU7bab7E8BLL_9-h5N9rPkTDURWrBqL0",
+        authDomain: "project-test-19065010.firebaseapp.com",
+        databaseURL: "https://project-test-19065010-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "project-test-19065010",
+        storageBucket: "project-test-19065010.appspot.com",
+        messagingSenderId: "1045988984374",
+        appId: "1:1045988984374:web:b2094ea507f84ecafefa97",
+        measurementId: "G-WZC4Z0M0D2"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+
+      const auth = firebase.auth();
+      const db = firebase.database();
+
+    </script>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <!--TOP BAR-->
+  <div class="topnav">
+    <h1>Sensor Readings App <i class="fas fa-clipboard-list"></i></h1>
+  </div>
+
+  <!--AUTHENTICATION BAR (USER DETAILS/LOGOUT BUTTON)-->
+  <div id="authentication-bar" >
+    <p><span id="authentication-status">User logged in</span>
+       <span id="user-details">USER EMAIL</span>
+       <a href="404.html" id="logout-link">(logout)</a>
+    </p>
+  </div>
+
+  <!--LOGIN FORM-->
+  <form action="weblogin.html">
+    <div class="form-elements-container">
+      <label for="input-email"><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" id="input-email" required>
+
+      <label for="input-password"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="input-password" required>
+
+      <button type="submit" id="login-button">Login</button>
+      <p id="error-message" style="color:red;"></p>
+    </div>
+  </form>
+
+
+
+
+    
+    
+  </body>
+</html>
