@@ -1,8 +1,8 @@
-#define S0 8 //S0 di pin D8
-#define S1 9 //S1 di pin D9
-#define S2 10 //S2 di pin D10
-#define S3 11 //S3 di pin D11
-#define sensorOut 12 //Out di pin D12
+#define S0 13 //S0 di pin D8
+#define S1 12 //S1 di pin D9
+#define S2 14 //S2 di pin D10
+#define S3 27 //S3 di pin D11
+#define sensorOut 26 //Out di pin D12
 
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
@@ -14,7 +14,7 @@ static int green = 0;
 static int blue = 0;
 
 void setup() {
-  lcd.begin();  lcd.backlight();
+   lcd.init();  lcd.backlight();
   
   pinMode(S0, OUTPUT); //Setting S0 sebagai output
   pinMode(S1, OUTPUT); //Setting S1 sebagai output
@@ -24,7 +24,7 @@ void setup() {
 
   digitalWrite(S0,HIGH); // setting 20% frequency
   digitalWrite(S1,LOW);
-  Serial.begin(9600); //Mulai komunikasi serial
+  Serial.begin(115200); //Mulai komunikasi serial
 }
 
 void bacaWarna(int s2,int s3){
@@ -67,6 +67,5 @@ void loop() {
   lcd.print("B: ");
   lcd.print(blue);
   lcd.print("                ");
-  delay(400);
-  
+  delay(100);
 }

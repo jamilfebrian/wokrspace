@@ -19,6 +19,7 @@
 #define BUTTON_PIN_1 10
 #define BUTTON_PIN_2 11 
 #define BUTTON_PIN_3 12
+#define BUTTON_PIN_4 13
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -30,7 +31,7 @@ NewPing sonar4(TRIG_4, ECHO_4, 200);
 double jarak_ultrasonik = 5;
 double previousTime, currentTime, stopTime;
 
-bool button1Active = false, button2Active = false,  button3Active = false;
+bool button1Active = false, button2Active = false,  button3Active = false, button4Active;
 bool hasilNilai = false;
 bool HC1,HC2,HC3,HC4;
 
@@ -42,7 +43,7 @@ static double PUKUL_KIRI=0,PUKUL_KANAN=0,TENDANG_KIRI=0,TENDANG_KANAN=0,TENDANG_
 static double damage[3], speed[3]; 
 
 void displayLCD(int level=0, int punch=0, int kick=0){
-  if(level==1 || level==2 || level==3){
+  if(level==1 || level==2 || level==3 || level==4){
     lcd.setCursor(0,0); lcd.print("===== LEVEL "+String(level)+" =====");
     lcd.setCursor(0,1); lcd.print("Lakukan :            ");
     lcd.setCursor(0,2); lcd.print("    "+String(punch)+" Pukulan        ");
@@ -69,7 +70,7 @@ void setup() {
   pinMode(BUTTON_PIN_1, INPUT_PULLUP);
   pinMode(BUTTON_PIN_2, INPUT_PULLUP);
   pinMode(BUTTON_PIN_3, INPUT_PULLUP);
-  pinMode(13,OUTPUT);
+  pinMode(BUTTON_PIN_4, INPUT_PULLUP);
 
   lcd.setCursor(0,0); lcd.print("                   ");
   lcd.setCursor(0,1); lcd.print("      WELCOME      ");
@@ -83,6 +84,7 @@ void loop() {
   bool level1 = digitalRead(BUTTON_PIN_1);
   bool level2 = digitalRead(BUTTON_PIN_2);
   bool level3 = digitalRead(BUTTON_PIN_3);
+  bool level4 = digitalRead(BUTTON_PIN_4);
   
   long DISTANCE_1 = sonar1.ping_cm();
   long DISTANCE_2 = sonar2.ping_cm();
@@ -112,11 +114,11 @@ void loop() {
   Serial.print(tendangKanan); Serial.print(" ");
   Serial.print(tendangTengah); Serial.println(" ");
   
-
   if(!level1){
       button1Active = true;
       button2Active = false;
       button3Active = false;
+      button4Active = false;
       tendangan = 1;
       pukulan = 1;
       x=0;
@@ -126,7 +128,8 @@ void loop() {
       button1Active = false;
       button2Active = true;
       button3Active = false;
-      tendangan = 1;
+      button4Active = false;
+      tendangan = 2;
       pukulan = 2;
       x=0;
       damage[0]=0; damage[1]=0; damage[2]=0;
@@ -135,18 +138,28 @@ void loop() {
       button1Active = false;
       button2Active = false;
       button3Active = true;
+      button4Active = false;
       tendangan = 2;
       pukulan = 1;
       x=0;
       damage[0]=0; damage[1]=0; damage[2]=0;
       speed[0]=0; speed[1]=0; speed[2]=0;
+  } else if(!level4){
+      button1Active = false;
+      button2Active = false;
+      button3Active = false;
+      button4Active = true;
+      tendangan = 1;
+      pukulan = 2;
+      x=0;
+      damage[0]=0; damage[1]=0; damage[2]=0;
+      speed[0]=0; speed[1]=0; speed[2]=0;
   }
-  
+
   if((DISTANCE_1!=0 && DISTANCE_1<=40) || (DISTANCE_2!=0 && DISTANCE_2<=40) || (DISTANCE_3!=0 && DISTANCE_3<=40) || (DISTANCE_4!=0 && DISTANCE_4<=40)){
-     digitalWrite(13,HIGH);
       if(a){ previousTime = millis(); a=false;}
       else{}
-  } else { digitalWrite(13,LOW); a=true;}
+  } else {a=true;}
   
   if(pukulKiri>10){                       //Lakukan Pukulan di Kiri
     delay(11);
@@ -227,6 +240,7 @@ void loop() {
 x = (button1Active && x==2) ? 0:x ; 
 x = (button2Active && x==3) ? 0:x ; 
 x = (button3Active && x==3) ? 0:x ;
+x = (button4Active && x==3) ? 0:x ;
 
 tendangan = (tendangan<=0) ? 0 : tendangan;
 pukulan = (pukulan<=0) ? 0 : pukulan;

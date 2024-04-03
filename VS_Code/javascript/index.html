@@ -1,32 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konversi Suhu</title>
-    <link rel="stylesheet" href="index.css">
-</head>
-<body>
-    <label for="textBox">Masukkan Suhu :</label><br>
-    <input type="text" name="suhu" id="textBox"><br>
-    <label for="">Pilih opsi konversi :</label><br>
-    <div class="opsi">
-        <input type="radio" name="temp" id="Celcius">
-        <label for="Celcius">Celcius</label><br>
-        <input type="radio" name="temp" id="Reamur">
-        <label for="Reamur">Reamur</label><br>
-        <input type="radio" name="temp" id="Fahrenheit">
-        <label for="Fahrenheit">Fahrenheit</label><br>
-        <input type="radio" name="temp" id="Kelvin">
-        <label for="Kelvin">Kelvin</label><br>
-    </div>
+    <title>Hello World</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Don't use this in production: -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
     
-    <button type="button" id="submit">Submit</button> <br><br>
+      function MyApp() {
+        return <h1>Hello, world!</h1>;
+      }
 
-    <label for="" id="hasil">(HASIL)</label>
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(<MyApp />);
 
-
-    <script src="index.js"></script>
-</body> 
+    </script>
+  </body>
 </html>
