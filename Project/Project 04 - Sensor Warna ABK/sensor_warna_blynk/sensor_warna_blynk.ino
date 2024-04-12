@@ -14,11 +14,11 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define PASS "12345678"
 #define AUTH BLYNK_AUTH_TOKEN
 
-#define S0 13 
-#define S1 12
-#define S2 14
-#define S3 27 
-#define sensorOut 26 
+#define S0 18
+#define S1 23
+#define S2 15
+#define S3 4 
+#define sensorOut 19
 
 DFRobotDFPlayerMini myDFPlayer; 
 
@@ -26,6 +26,7 @@ static int red = 0; //Variabel frekuensi
 static int green = 0;
 static int blue = 0;
 
+bool counter = true;;
 int timer = 1000;
 
 void DFConnect(){
@@ -33,14 +34,7 @@ void DFConnect(){
   Serial.println(F("Mengaktifkan DF PLAYER"));
   Serial.println(F("Initializing DFPlayer ... (Tunggu Sekitar 3~5 detik)"));
   
-  if (!myDFPlayer.begin(Serial2)) {  
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    while(true){
-      delay(0); 
-    }
-  }
+  myDFPlayer.begin(Serial2);
   Serial.println(F("DFPlayer Mini online."));
   myDFPlayer.volume(30);  //Set volume value. From 0 to 30
 }
@@ -55,10 +49,15 @@ void setup() {
 
   digitalWrite(S0,HIGH); // setting 20% frequency
   digitalWrite(S1,LOW);
-  Serial.begin(9600); //Mulai komunikasi serial
+  Serial.begin(115200); //Mulai komunikasi serial
   Serial2.begin(9600);
 
+  DFConnect();
+
   lcd.init();  lcd.backlight();
+
+  lcd.setCursor(0,0);  lcd.print("Menyambungkan ke");  
+  lcd.setCursor(0,1);  lcd.print(SSID);
 
   digitalWrite(2, LOW);
   WiFi.begin(SSID, PASS);
@@ -66,8 +65,7 @@ void setup() {
     delay(100); digitalWrite(2, LOW);
   }   digitalWrite(2, HIGH);
   Blynk.begin(AUTH, SSID, PASS, "blynk.cloud", 80);
-  
-//  DFConnect();
+   lcd.clear();
 }
 
 void bacaWarna(int s2,int s3){
@@ -100,8 +98,10 @@ void loop() {
     Blynk.virtualWrite(V1, 1); 
     Blynk.virtualWrite(V2, 0); 
     Blynk.virtualWrite(V3, 0); 
-//    myDFPlayer.play(1);
-    delay(timer);
+    lcd.setCursor(7,1); lcd.print("Merah");
+    myDFPlayer.play(1);
+    delay(timer); counter=true;
+    
   } 
   else if ((red<17 && red>10)&&(green<30 && green>10)&&(blue<11 && blue>6)){
     Serial.println("Kuning");
@@ -109,8 +109,9 @@ void loop() {
     Blynk.virtualWrite(V1, 0);
     Blynk.virtualWrite(V2, 1); 
     Blynk.virtualWrite(V3, 0);  
-//    myDFPlayer.play(2);
-    delay(timer);
+    lcd.setCursor(7,1); lcd.print("Kuning");
+    myDFPlayer.play(2);
+    delay(timer); counter=true;
   } 
   else if ((red<25 && red>9)&&(green<18 && green>10)&&(blue<6 && blue>2)){
     Serial.println("Biru");
@@ -118,22 +119,24 @@ void loop() {
     Blynk.virtualWrite(V1, 0);
     Blynk.virtualWrite(V2, 0); 
     Blynk.virtualWrite(V3, 1);   
-//    myDFPlayer.play(3);
-    delay(timer);
+    lcd.setCursor(7,1); lcd.print("Biru");
+    myDFPlayer.play(3);
+    delay(timer); counter=true;
   } else {
-    Blynk.virtualWrite(V0, 4); 
-    Blynk.virtualWrite(V1, 0);
-    Blynk.virtualWrite(V2, 0); 
-    Blynk.virtualWrite(V3, 0);   
-    delay(100);
+    if(counter){
+      Blynk.virtualWrite(V0, 3); 
+      Blynk.virtualWrite(V1, 0);
+      Blynk.virtualWrite(V2, 0); 
+      Blynk.virtualWrite(V3, 0);   
+      lcd.setCursor(7,1); lcd.print("            ");
+      delay(100); counter=false;
+    }
   }
-
-
+  
   lcd.setCursor(0,0);  
   lcd.print("R: ");  lcd.print(red);  
   lcd.print(" G: ");  lcd.print(green);
   lcd.print("                    ");
   lcd.setCursor(0,1);
   lcd.print("B: ");  lcd.print(blue);
-  lcd.print("                    ");
 }
