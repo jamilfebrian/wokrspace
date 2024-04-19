@@ -1,223 +1,125 @@
-#include <WiFi.h>
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
 
-// Replace with your network credentials
-const char* ssid = "realme C31";
-const char* password = "987654321";
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>
 
-bool ledState = 0;
-const int ledPin = 2;
+// Wifi network station credentials
+#define WIFI_SSID "Tinkpad"
+#define WIFI_PASSWORD "12345678"
+// Telegram BOT Token (Get from Botfather)
+#define BOT_TOKEN "5346287582:AAFyl0CBY_hr5PJDFeCJMg9X0LwKOV-RP2s"
 
-// Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
+const unsigned long BOT_MTBS = 1000; // mean time between scan messages
 
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
-<head>
-  <title>ESP Web Server</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:,">
-  <style>
-  html {
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-  }
-  h1 {
-    font-size: 1.8rem;
-    color: white;
-  }
-  h2{
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #143642;
-  }
-  .topnav {
-    overflow: hidden;
-    background-color: #143642;
-  }
-  body {
-    margin: 0;
-  }
-  .content {
-    padding: 30px;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  .card {
-    background-color: #F8F7F9;;
-    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
-    padding-top:10px;
-    padding-bottom:20px;
-  }
-  .button {
-    padding: 15px 50px;
-    font-size: 24px;
-    text-align: center;
-    outline: none;
-    color: #fff;
-    background-color: #0f8b8d;
-    border: none;
-    border-radius: 5px;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-   }
-   /*.button:hover {background-color: #0f8b8d}*/
-   .button:active {
-     background-color: #0f8b8d;
-     box-shadow: 2 2px #CDCDCD;
-     transform: translateY(2px);
-   }
-   .state {
-     font-size: 1.5rem;
-     color:#8c8c8c;
-     font-weight: bold;
-   }
-  </style>
-<title>ESP Web Server</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:,">
-</head>
-<body>
-  <div class="topnav">
-    <h1>ESP WebSocket Server</h1>
-  </div>
-  <div class="content">
-    <div class="card">
-      <h2>Output - GPIO 2</h2>
-      <p class="state">state: <span id="state">%STATE%</span></p>
-      <p><button id="button" class="button">Toggle</button></p>
-    </div>
-  </div>
-<script>
-  var gateway = `ws://${window.location.hostname}/ws`;
-  var websocket;
-  window.addEventListener('load', onLoad);
-  function initWebSocket() {
-    console.log('Trying to open a WebSocket connection...');
-    websocket = new WebSocket(gateway);
-    websocket.onopen    = onOpen;
-    websocket.onclose   = onClose;
-    websocket.onmessage = onMessage; // <-- add this line
-  }
-  function onOpen(event) {
-    console.log('Connection opened');
-  }
-  function onClose(event) {
-    console.log('Connection closed');
-    setTimeout(initWebSocket, 2000);
-  }
-  function onMessage(event) {
-    var state;
-    if (event.data == "1"){
-      state = "ON";
+X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+WiFiClientSecure secured_client;
+UniversalTelegramBot bot(BOT_TOKEN, secured_client);
+unsigned long bot_lasttime; // last time messages' scan has been done
+
+const int ledPin = LED_BUILTIN;
+int ledStatus = 0;
+
+void handleNewMessages(int numNewMessages)
+{
+  Serial.print("handleNewMessages ");
+  Serial.println(numNewMessages);
+
+  for (int i = 0; i < numNewMessages; i++)
+  {
+    String chat_id = bot.messages[i].chat_id;
+    String text = bot.messages[i].text;
+
+    String from_name = bot.messages[i].from_name;
+    if (from_name == "")
+      from_name = "Guest";
+
+    if (text == "/ledon")
+    {
+      digitalWrite(ledPin, LOW); // turn the LED on (HIGH is the voltage level)
+      ledStatus = 1;
+      bot.sendMessage(chat_id, "Led is ON", "");
     }
-    else{
-      state = "OFF";
+
+    if (text == "/ledoff")
+    {
+      ledStatus = 0;
+      digitalWrite(ledPin, HIGH); // turn the LED off (LOW is the voltage level)
+      bot.sendMessage(chat_id, "Led is OFF", "");
     }
-    document.getElementById('state').innerHTML = state;
-  }
-  function onLoad(event) {
-    initWebSocket();
-    initButton();
-  }
-  function initButton() {
-    document.getElementById('button').addEventListener('click', toggle);
-  }
-  function toggle(){
-    websocket.send('toggle');
-  }
-</script>
-</body>
-</html>
-)rawliteral";
 
-void notifyClients() {
-  ws.textAll(String(ledState));
-}
+    if (text == "/status")
+    {
+      if (ledStatus)
+      {
+        bot.sendMessage(chat_id, "Led is ON", "");
+      }
+      else
+      {
+        bot.sendMessage(chat_id, "Led is OFF", "");
+      }
+    }
 
-void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
-  AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    data[len] = 0;
-    if (strcmp((char*)data, "toggle") == 0) {
-      ledState = !ledState;
-      notifyClients();
+    if (text == "/start")
+    {
+      String welcome = "Welcome to Universal Arduino Telegram Bot library, " + from_name + ".\n";
+      welcome += "This is Flash Led Bot example.\n\n";
+      welcome += "/ledon : to switch the Led ON\n";
+      welcome += "/ledoff : to switch the Led OFF\n";
+      welcome += "/status : Returns current status of LED\n";
+      bot.sendMessage(chat_id, welcome, "Markdown");
     }
   }
 }
 
-void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-             void *arg, uint8_t *data, size_t len) {
-  switch (type) {
-    case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      break;
-    case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
-      break;
-    case WS_EVT_DATA:
-      handleWebSocketMessage(arg, data, len);
-      break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
-      break;
-  }
-}
 
-void initWebSocket() {
-  ws.onEvent(onEvent);
-  server.addHandler(&ws);
-}
-
-String processor(const String& var){
-  Serial.println(var);
-  if(var == "STATE"){
-    if (ledState){
-      return "ON";
-    }
-    else{
-      return "OFF";
-    }
-  }
-  return String();
-}
-
-void setup(){
-  // Serial port for debugging purposes
+void setup()
+{
   Serial.begin(115200);
+  Serial.println();
 
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
-  
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
+  pinMode(ledPin, OUTPUT); // initialize digital ledPin as an output.
+  delay(10);
+  digitalWrite(ledPin, HIGH); // initialize pin as off (active LOW)
+
+  // attempt to connect to Wifi network:
+  configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
+  secured_client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
+  Serial.print("Connecting to Wifi SSID ");
+  Serial.print(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(500);
   }
-
-  // Print ESP Local IP Address
+  Serial.print("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
 
-  initWebSocket();
-
-  // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html, processor);
-  });
-
-  // Start server
-  server.begin();
+  // Check NTP/Time, usually it is instantaneous and you can delete the code below.
+  Serial.print("Retrieving time: ");
+  time_t now = time(nullptr);
+  while (now < 24 * 3600)
+  {
+    Serial.print(".");
+    delay(100);
+    now = time(nullptr);
+  }
+  Serial.println(now);
 }
 
-void loop() {
-  ws.cleanupClients();
-  digitalWrite(ledPin, ledState);
+void loop()
+{
+  if (millis() - bot_lasttime > BOT_MTBS)
+  {
+    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+
+    while (numNewMessages)
+    {
+      Serial.println("got response");
+      handleNewMessages(numNewMessages);
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    }
+
+    bot_lasttime = millis();
+  }
 }
