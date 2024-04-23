@@ -1,26 +1,42 @@
-#include <WiFi.h>
+
+#include <Arduino.h>
+#if defined(ESP32)
+  #include <WiFi.h>
+#elif defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#endif
 #include <Firebase_ESP_Client.h>
+
+#define LED 2
 
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 
-#define WIFI_SSID "Tinkpad"
-#define WIFI_PASSWORD "12345678"
+// Insert your network credentials
+#define WIFI_SSID "192.168.65.10"
+#define WIFI_PASSWORD "88888888"
+#define USER_EMAIL "jamilfebrian68@gmail.com"
+#define USER_PASSWORD "12345678"
+#define USER_UUID "3rkRbklEctY3TGaXLYZMZLHvT0z2"
 
+// Insert Firebase project API Key
 #define API_KEY "AIzaSyAT6fK0djMUblHDICdb6XpxkFDiGDkm4R4"
 #define DATABASE_URL "https://login-page-77ed3-default-rtdb.asia-southeast1.firebasedatabase.app/" 
 
 FirebaseData fbdo;
-
 FirebaseAuth auth;
 FirebaseConfig config;
-String uid;
 
 unsigned long sendDataPrevMillis = 0;
-int count = 0;
+bool state1 = false;
 bool signupOK = false;
 
+bool lampu1,lampu2;
+int intValue;
+float floatValue;
+
 void setup(){
+  pinMode(LED, OUTPUT);
   Serial.begin(115200);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
@@ -33,66 +49,61 @@ void setup(){
   Serial.println(WiFi.localIP());
   Serial.println();
 
- 
-  config.api_key = API_KEY; /* Assign the api key (required) */
-  config.database_url = DATABASE_URL;  /* Assign the RTDB URL (required) */
-
-  auth.user.email = "jamilf.darkstar68@gmail.com";
-  auth.user.password = "12345678";
+  //setting konfigurasi login firebase
+  config.api_key = API_KEY;
+  config.database_url = DATABASE_URL;
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
 
   /* Sign up */
-//  if (Firebase.signUp(&config, &auth, email.c_str(), password.c_str())){
-//    Serial.println("ok");
-//    signupOK = true;
-//  } else{
-//    Serial.printf("%s\n", config.signer.signupError.message.c_str());
-//  }
+  signupOK = true;
 
   config.token_status_callback = tokenStatusCallback;
   
   Firebase.begin(&config, &auth);
-
-  Serial.println("Getting User UID");
-  while ((auth.token.uid) == "") {
-    Serial.print('.');
-    delay(1000);
-  }
-  uid = auth.token.uid.c_str();
-  Serial.print("User UID: ");
-  Serial.print(uid);
-  
   Firebase.reconnectWiFi(true);
 }
 
 void loop(){
-  if (Firebase.isTokenExpired()){
-    Firebase.refreshToken(&config);
-    Serial.println("Refresh token");
-  }
+
+
+
   
-  if (Firebase.ready() &&  (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)){
+  
+  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 500 || sendDataPrevMillis == 0)) {
     sendDataPrevMillis = millis();
-    // Write an Int number on the database path test/int
-    if (Firebase.RTDB.setInt(&fbdo, "test/int", count)){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
-    count++;
-    
-    // Write an Float number on the database path test/float
-    if (Firebase.RTDB.setFloat(&fbdo, "test/float", 0.01 + random(0,100))){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
+      if (Firebase.RTDB.getInt(&fbdo, "/kontrol/"USER_UUID"/lampu1")) {
+          Serial.println("SUCCES");
+            if(fbdo.intData() == 1){
+              digitalWrite(LED,HIGH);
+            }else{
+              digitalWrite(LED,LOW);
+            }
+       }
+        else {
+          Serial.println(fbdo.errorReason());
+        }
   }
+//    if (Firebase.RTDB.setInt(&fbdo, "kontrol/lampu1", logic)){
+//      Serial.println("PASSED");
+//      Serial.println("PATH: " + fbdo.dataPath());
+//      Serial.println("TYPE: " + fbdo.dataType());
+//    }
+//    else {
+//      Serial.println("FAILED");
+//      Serial.println("REASON: " + fbdo.errorReason());
+//    } 
+//
+//    logic = !logic;
+//
+//    if (Firebase.RTDB.setInt(&fbdo, "kontrol/lampu2", logic)){
+//      Serial.println("PASSED");
+//      Serial.println("PATH: " + fbdo.dataPath());
+//      Serial.println("TYPE: " + fbdo.dataType());
+//    }
+//    else {
+//      Serial.println("FAILED");
+//      Serial.println("REASON: " + fbdo.errorReason());
+//    }
+//  }
 }
