@@ -186,7 +186,7 @@ void loop() {
       } else {
         lcd.setCursor(0,0); lcd.print(" Silahkan Tutup ");
         lcd.setCursor(0,1); lcd.print("  Pintu Kembali ");
-        logic1 = false; logic2 = true; 
+        logic2 = true; 
       }
     } else {
       lcd.setCursor(0,0); lcd.print("    Silahkan    ");
@@ -198,6 +198,7 @@ void loop() {
   
   if(logic2){
     if(!status_paket){
+      logic1 = false;
       digitalWrite(RELAY_PINTU_UANG, LOW);
       digitalWrite(RELAY_PINTU_PAKET, HIGH);
       buzzer(2,2,200);
@@ -222,7 +223,7 @@ void loop() {
         myBot.sendMessage(IDTelegram, "Paket pesanan anda telah sampai,\nSegera cek kelengkapan pesanan anda.");
         
         myBot.sendMessage(IDTelegram, "Kode Paket Anda : " +String(randomNumber));
-        delay(5000); logic3 = false; logic0 = true;
+        delay(3000); logic3 = false; logic0 = true;
     } else {
         lcd.setCursor(0,0); lcd.print("  Mohon Pintu   ");
         lcd.setCursor(0,1); lcd.print("Ditutup Kembali ");
@@ -260,13 +261,15 @@ void loop() {
 
   if(x2){
     if(!status_paket){
-      digitalWrite(RELAY_PINTU_PAKET,HIGH); x2=false;
+      digitalWrite(RELAY_PINTU_PAKET,HIGH);
+      x2=false;
     }
   }
   if(x3){
     if(!status_uang){
-      digitalWrite(RELAY_PINTU_UANG,HIGH); x3=false;
+      digitalWrite(RELAY_PINTU_UANG,HIGH); 
       digitalWrite(LED_PIN,LOW);
+      x3=false;
     }
   }
   
