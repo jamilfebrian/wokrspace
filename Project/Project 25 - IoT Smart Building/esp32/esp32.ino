@@ -7,9 +7,9 @@
 #define LAMPU_1   15
 #define LAMPU_2   2
 #define LAMPU_3   4
-#define LAMPU_4   5
-#define LAMPU_5   18
-#define LAMPU_6   19
+#define LAMPU_4   13
+#define LAMPU_5   12
+#define LAMPU_6   14
 
 #define BUTTON_1  36
 #define BUTTON_2  39
@@ -18,15 +18,15 @@
 #define BUTTON_5  32
 #define BUTTON_6  33
 
-#define RXSensorPin 25
-#define TXSensorPin 26
+#define RXSensorPin 16
+#define TXSensorPin 17
 
 #define MAGNET_SENSOR 27
-#define BUZZER 23
+#define BUZZER 26
 
-/*MISO=19  MOSI=23  SCK=18  SDA=21  RST=22  VCC  GND*/
-#define RST_PIN       22       
-#define SS_PIN        21   
+/*MISO=19  MOSI=23  SCK=18  SDA=5  RST=25  VCC  GND*/
+#define RST_PIN       25       
+#define SS_PIN        5   
 
 #define ssid      "Tinkpad"   //--> Your wifi name
 #define password  "12345678" //--> Your wifi password

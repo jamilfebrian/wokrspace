@@ -1,3 +1,28 @@
+
+/*========Kalibrasi Sensor Warna========*/
+#define Merah_R_Low   
+#define Merah_R_High  
+#define Merah_G_Low   
+#define Merah_G_High  
+#define Merah_B_Low   
+#define Merah_B_High  
+
+#define Kuning_R_Low   
+#define Kuning_R_High  
+#define Kuning_G_Low   
+#define Kuning_G_High  
+#define Kuning_B_Low   
+#define Kuning_B_High  
+
+#define Biru_R_Low   
+#define Biru_R_High  
+#define Biru_G_Low   
+#define Biru_G_High  
+#define Biru_B_Low   
+#define Biru_B_High  
+
+/*=========================================*/
+
 #define BLYNK_TEMPLATE_ID "TMPL66-pvNTq2"
 #define BLYNK_TEMPLATE_NAME "Sensor Warna"
 #define BLYNK_AUTH_TOKEN "KciYiTxwTpELD4HIaVdjLmgokA5bakR0"
@@ -26,7 +51,7 @@ static int red = 0; //Variabel frekuensi
 static int green = 0;
 static int blue = 0;
 
-bool counter = true;;
+bool counter = true;
 int timer = 1000;
 
 void DFConnect(){
@@ -92,7 +117,7 @@ void loop() {
   Blynk.run();
   bacaWarna(S2,S3);
   
-  if ((red<27 && red>14)&&(green<100 && green>50)&&(blue<25 && blue>13)){
+  if ((red<Merah_R_High && red>Merah_R_Low)&&(green<Merah_G_High && green>Merah_G_Low)&&(blue<Merah_B_High && blue>Merah_B_Low)){
     Serial.println("Merah");
     Blynk.virtualWrite(V0, 0); 
     Blynk.virtualWrite(V1, 1); 
@@ -103,7 +128,7 @@ void loop() {
     delay(timer); counter=true;
     
   } 
-  else if ((red<17 && red>10)&&(green<30 && green>10)&&(blue<11 && blue>6)){
+  else if ((red<Kuning_R_High && red>Kuning_R_Low)&&(green<Kuning_G_High && green>Kuning_G_Low)&&(blue<Kuning_B_High && blue>Kuning_B_Low)){
     Serial.println("Kuning");
     Blynk.virtualWrite(V0, 1); 
     Blynk.virtualWrite(V1, 0);
@@ -113,7 +138,7 @@ void loop() {
     myDFPlayer.play(2);
     delay(timer); counter=true;
   } 
-  else if ((red<25 && red>9)&&(green<18 && green>10)&&(blue<6 && blue>2)){
+  else if ((red<Biru_R_High && red>Biru_R_Low)&&(green<Biru_G_High && green>Biru_G_Low)&&(blue<Biru_G_High && blue>Biru_B_Low)){
     Serial.println("Biru");
     Blynk.virtualWrite(V0, 2); 
     Blynk.virtualWrite(V1, 0);
@@ -139,4 +164,5 @@ void loop() {
   lcd.print("                    ");
   lcd.setCursor(0,1);
   lcd.print("B: ");  lcd.print(blue);
+  lcd.print("   ");
 }
