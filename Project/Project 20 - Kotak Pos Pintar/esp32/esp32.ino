@@ -13,10 +13,10 @@
 #define TRIGPIN            18
 #define ECHOPIN            19
 
-#define ssid        "192.168.50.10"
+#define ssid        "Tinkpad"
 #define password    "12345678"
 #define token       "7111168526:AAGVUM_-6o5o0S3UVcUsgmsFsgd2g6p1Unc"
-#define IDTelegram  1599903092
+#define IDTelegram  msg.sender.id
 
 char keys[4][4] = { {'1','2','3','A'},
                     {'4','5','6','B'},

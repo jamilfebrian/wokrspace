@@ -7,8 +7,8 @@
 #include <LiquidCrystal_I2C.h>
 #include "Adafruit_VL53L0X.h"
 
-#define ssid "Tinkpad"
-#define password "12345678"
+#define ssid "Qoqo"
+#define password "qoqookee"
 #define token BLYNK_AUTH_TOKEN
 
 WidgetLCD lcdBlynk1(V9);
@@ -17,25 +17,46 @@ Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 
 #define MQ4_A0  34
 #define MQ4_D0  12
-#define IN1     27
-#define IN2     14
-#define IN3     12
-#define IN4     13
 #define relay1  18  //relay untuk membuka katup selenoid
 #define relay2  19  //relay untuk menggerakkan motor DC
+#define BUZZER  13
+
+const float CH4_RL = 10.00;  // Load Resistance in kΩ
+const float CH4_R0 = 20.00;  // Resistansi ketika udara bersih
+const float CH4_Vin = 3.30;  // tegangan input dari esp32
+const int CH4_Bit = 4095;    // bit data esp32
+
+const float a = 1000; //konstanta kurva kalibrasi dari datasheet
+const float b = 1.5;  //konstanta kurva kalibrasi dari datasheet
+
+void buzzer(int index = 3, int timer = 80){
+    for(int i=0; i<index; i++){
+      digitalWrite(BUZZER, HIGH);
+      delay(timer);
+      digitalWrite(BUZZER, LOW);
+      delay(timer);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
+  lcd.init(); lcd.backlight(); lcd.clear();
   WiFi.begin(ssid, password);
   Blynk.begin(token, ssid, password, "blynk.cloud", 80);
   
-  lcd.init(); lcd.backlight(); lcd.clear();
   lcdBlynk1.clear();
   
   pinMode(MQ4_A0,INPUT);
   pinMode(MQ4_D0,INPUT);
   pinMode(relay1, OUTPUT);
   pinMode(relay2, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  if(!digitalRead(relay1)){
+    Blynk.virtualWrite(V0,HIGH);
+  }else{
+    Blynk.virtualWrite(V0,LOW);
+  }
 
   if (!lox.begin()) {
     Serial.println(F("Failed to boot VL53L0X"));
@@ -46,31 +67,48 @@ void setup() {
 void loop() {
   Blynk.run();
 
-  int CH4 = analogRead(MQ4_A0);
-  int percent = CH4*100/4095;
-  int sludge = 819 - (lox.readRange()/10);
+  int CH4_value = analogRead(MQ4_A0);                      // nilai ADC sensor gas
+  int CH4_percent = CH4_value * 100 / CH4_Bit;             // persentase nilai ADC sensor gas
+  float CH4_Vout = CH4_Vin * float(CH4_value) / CH4_Bit;   // nilai tegangan output pada sensor gas
+  float CH4_RS = ((CH4_Vin * CH4_RL) / CH4_Vout) - CH4_RL; // nilai resistansi variabel gas
 
-  Blynk.virtualWrite(V1, CH4); 
-  Blynk.virtualWrite(V2, sludge); 
+  float CH4_ratio = CH4_RS / CH4_R0;
+  float CH4_PPM = a * pow(CH4_ratio, b);
+  float CH4_PPM_Percent = CH4_PPM / 10000;
+  
+  
+  int Sludge_range = lox.readRange()/10;
+  Sludge_range = (Sludge_range >= 100) ? 100 : Sludge_range;
+
+  Blynk.virtualWrite(V1, CH4_value); 
+  Blynk.virtualWrite(V2, Sludge_range); 
+ 
+  lcdBlynk1.print(0,0,"CH4 : "+String(CH4_percent)+"%    ");
+
   
   lcd.setCursor(0, 0);
-  lcd.print("CH4:"); lcd.print(CH4); lcd.print("     ");
+  lcd.print("V:"); lcd.print(CH4_Vout); 
+  lcd.print(" CH4:");lcd.print(CH4_value); lcd.print("  ");
   lcd.setCursor(0, 1);
-  lcd.print("Slg:"); lcd.print(sludge); lcd.print("  ");
-  lcdBlynk1.print(0,0,"CH4 : "+String(percent)+"%    ");
+  lcd.print("Slg:"); lcd.print(Sludge_range); lcd.print("  ");
   
-  if(sludge < 10){
+  if(sludge >= 100){
     lcd.setCursor(9, 1);
     lcd.print("(Empty)   ");
     lcdBlynk1.print(0,1,"Sludge : (Empty)  ");
-  } else if(sludge > 800){
+  } else if(sludge < 30){
     lcd.setCursor(9, 1);
     lcd.print("(Full)   ");
     lcdBlynk1.print(0,1,"Sludge : (Full)  ");
   } else {
     lcd.setCursor(9, 1);
-    lcd.print("           ");
+    lcd.print("(Fill)   ");
     lcdBlynk1.print(0,1,"Sludge : (Fill) ");
+  }
+
+  if(percent >= 65){
+    Blynk.logEvent("ch4_65","Gas Metana CH4 mencapai 65% "); 
+    buzzer(8,80);
   }
 }
 

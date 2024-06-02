@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-    <title>ESP Web Server</title>
+    <title>Drone Control Web Server</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +13,7 @@
             text-align: center;
         }
         h1 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: white;
         }
         h2{
@@ -21,25 +21,138 @@
             font-weight: bold;
             color: #143642;
         }
+        body {
+            margin: 0;
+        }
         .topnav {
             overflow: hidden;
             background-color: #143642;
-        }
-        body {
-            margin: 0;
         }
         .content {
             padding: 30px;
             max-width: 600px;
             margin: 0 auto;
+            display: block;
         }
         .card {
             background-color: #F8F7F9;;
-            box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+            box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
             padding-top:10px;
             padding-bottom:20px;
+            border-radius: 20px;
         }
-        .button {
+        .command {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        .command button {
+            display: inline;
+            background-color: #00e1f1;
+            outline: auto;
+            width: 120px;
+            height: 50px;
+            font-size: 20px;
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
+        .command button:hover{
+            cursor: pointer;
+            background-color: #0f8b8d;
+        }
+        .command button:active{
+            box-shadow: 2 2px #CDCDCD;
+            transform: translateY(2px);
+            background-color: #00b0bd;
+        }
+        .mode{
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 5px;
+            padding: 5px;
+        }
+        .mode form #mode{
+            width: 200px;
+            height: 30px;
+            text-align: center;
+        }
+        .mode button , .takeoff button{
+            box-sizing: auto;
+            background-color: #00e1f1;
+            outline: auto;
+            width: 100px;
+            height: auto;
+            font-size: auto;
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
+        .mode button:hover, .takeoff button:hover{
+            cursor: pointer;
+            background-color: #0f8b8d;
+        }
+        .mode button:active, .takeoff button:active{
+            box-shadow: 2 2px #CDCDCD;
+            transform: translateY(2px);
+            background-color: #00b0bd;
+        }
+        .takeoff{
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .takeoff form #Takeoff{
+            width: 200px;
+            height: 30px;
+            text-align: center;
+        }
+        .yaw-button{
+            display: flex;
+            justify-content: center;
+            gap: 70px;
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+        .yaw-button button {
+            width: 100px;
+            height: 50px;
+            font-size: 30px;
+            border-radius: 20px;
+            margin: 5px;
+        }
+        .yaw-button button:hover, .left-right button:hover, button.up:hover, button.down:hover{
+            cursor: pointer;
+            background-color: #c6feff;
+        }
+        .yaw-button button:active, .left-right button:active, button.up:active, button.down:active{
+            box-shadow: 2 2px #CDCDCD;
+            transform: translateY(2px);
+            background-color: #85b1b4;
+        }
+        .stick button.up, .stick button.down{
+            width: 60px;
+            height: 60px;
+            font-size: 30px;
+            border-radius: 50px;
+            text-align: center;
+        }
+        .left-right {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+        }
+        .left-right button {
+            width: 60px;
+            height: 60px;
+            font-size: 30px;
+            border-radius: 50px;
+        }
+        .state {
+            font-size: 1.5rem;
+            color:#8c8c8c;
+            font-weight: bold;
+        }
+        .sprayer {
             padding: 15px 50px;
             font-size: 24px;
             text-align: center;
@@ -47,39 +160,107 @@
             color: #fff;
             background-color: #0f8b8d;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
-        /*.button:hover {background-color: #0f8b8d}*/
-        .button:active {
+        .sprayer:hover {
+            background-color: #04d1d4;
+            cursor: pointer;
+        }
+
+        .sprayer:active {
             background-color: #0f8b8d;
             box-shadow: 2 2px #CDCDCD;
             transform: translateY(2px);
         }
-        .state {
-            font-size: 1.5rem;
-            color:#8c8c8c;
-            font-weight: bold;
+        .flight-status {
+            display: grid;
+            margin: auto;
+            margin-top: 20px;
+            background-color: #bcffc1;;
+            box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
+            padding-top:10px;
+            padding-bottom:20px;
+            grid-template-columns: auto auto ;
+            padding: 10px;
+            gap: 10px;
+            font-size: 20px;
+            border-radius: 20px;
+        }
+        .flight-status div span {
+            font-size: 30px;
         }
     </style>
 </head>
 <body>
     <div class="topnav">
-        <h1>Sistem Kontrol Penyemprotan Cairan Pestisida Otomatis Menggunakan Drone UAV Hexacopter</h1>
+        <h1 class="judul">Sistem Kontrol Penyemprotan Cairan Pestisida Otomatis Menggunakan Drone UAV Hexacopter</h1>
     </div>
+
     <div class="content">
         <div class="card">
-            <h2>Output - GPIO 2</h2>
-            <p class="state">state: <span id="state">%STATE%</span></p>
-            <p><button id="button" class="button">Toggle</button></p>
+            <div class="command">
+                <button type="button" class="connect" id="connect">Connect</button>
+                <button type="button" class="armed" id="armed">Armed</button>
+            </div>
+            <div class="mode">
+                <form>
+                    <select title="mode" id="mode" name="mode">
+                        <option value="usa">GUIDED</option>
+                        <option value="stabilize">STABILIZE</option>
+                        <option value="auto">AUTO</option>
+                        <option value="rtl">RTL</option>
+                        <option value="loiter">LOITER</option>
+                        <option value="land">LAND</option>
+                    </select>
+                </form>
+                <button type="submit" id="setMode">Set Mode</button>
+            </div>
+            <div class="takeoff">
+                <form>
+                    <select title="takeoff" id="Takeoff" name="takeoff">
+                        <option value="alt1">1</option>
+                        <option value="alt2">2</option>
+                        <option value="alt3">3</option>
+                        <option value="alt4">4</option>
+                        <option value="alt5">5</option>
+                    </select>
+                </form>
+                <button type="submit" id="takeoff">Take Off</button>
+            </div>
+            <p style="font-family: 'Courier New', Courier, monospace;">Mode : <strong><span id="Modes">GUIDED</span></strong><br>Take Off : <span id="altitude">12</span></p>
+            <div class="stick">
+                <div class="yaw-button">
+                    <button type="button" class="yaw-left" id="yaw-left" onmousedown=mousedown(this) onmouseup=mouseup(this) value="◄">◄</button>
+                    <button type="button" class="yaw-right" id="yaw-right" onmousedown=mousedown(this) onmouseup=mouseup(this) value="►">►</button>
+                </div>
+                <button type="button" class="up" id="up" onmousedown=mousedown(this) onmouseup=mouseup(this) value="▲">▲</button>
+                <div class="left-right">
+                    <button type="button" class="left" id="left" onmousedown=mousedown(this) onmouseup=mouseup(this) value="◄">◄</button>
+                    <button type="button" class="right" id="right" onmousedown=mousedown(this) onmouseup=mouseup(this) value="►">►</button>
+                </div>
+                <button type="button" class="down" id="down" on onmousedown=mousedown(this) onmouseup=mouseup(this) value="▼">▼</button>
+            </div>
+
+            <h2 class="gpio2">Output - GPIO 2</h2>
+            <p class="state">State: <span id="state">%STATE%</span></p>
+            <p><button type="button" id="sprayer" class="sprayer">Spray</button></p>
+        </div>
+        <div class="flight-status">
+            <div>Altitude <br><span id="alt">%ALT%</span>m</div>
+            <div>Ground Speed <br><span id="gs">%GS%</span>m/s</div>
+            <div>Sprayer<br><span id="spray">%SPRAY%</span></div>
+            <div>Yaw<br><span id="yaw">%YAW%</span>deg</div>
+            <div>Temperature<br><span id="temp">%TEMP%</span>°C</div>
+            <div>Pressure<br><span id="press">%PRESS%</span>hPa</div>
         </div>
     </div>
+
     <script>
         var gateway = `ws://${window.location.hostname}/ws`;
         var websocket;
@@ -101,23 +282,42 @@
         }
         function onMessage(event) {
             var state;
-            if (event.data == "1"){
-            state = "ON";
+            var mydata = event.data;
+            var myArray = JSON.parse(mydata);
+
+            if(myArray[0] == "1"){
+              state = "ON";
+            } else {
+              state = "OFF";
             }
-            else{
-            state = "OFF";
-            }
+            
             document.getElementById('state').innerHTML = state;
+            document.getElementById('spray').innerHTML = state;
+            document.getElementById('temp').innerHTML = myArray[1];
+            document.getElementById('press').innerHTML = myArray[2];
+            document.getElementById('alt').innerHTML = myArray[3];
+            document.getElementById('gs').innerHTML = 67;
+            document.getElementById('yaw').innerHTML = 90;
         }
         function onLoad(event) {
             initWebSocket();
             initButton();
         }
         function initButton() {
-            document.getElementById('button').addEventListener('click', toggle);
+            document.getElementById('sprayer').addEventListener('click', toggle);
         }
+
         function toggle(){
-            websocket.send('toggle');
+            websocket.send('spray');
+        }
+
+        function mousedown(obj){
+            obj.style.backgroundColor = "#dddddd";
+            obj.style.textIndent = "-9999px"; 
+        }
+        function mouseup(obj){
+            obj.style.backgroundColor = "#ffffff";
+            obj.style.textIndent = "1px"; 
         }
     </script>
 </body>
