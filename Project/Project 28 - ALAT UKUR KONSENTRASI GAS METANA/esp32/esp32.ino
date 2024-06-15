@@ -16,7 +16,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 
 #define MQ4_A0  34
-#define MQ4_D0  12
+#define MQ4_D0  35
 #define relay1  18  //relay untuk membuka katup selenoid
 #define relay2  19  //relay untuk menggerakkan motor DC
 #define BUZZER  13
@@ -80,7 +80,7 @@ void loop() {
   int Sludge_range = lox.readRange()/10;
   Sludge_range = (Sludge_range >= 100) ? 100 : Sludge_range;
 
-  Blynk.virtualWrite(V1, CH4_value); 
+  Blynk.virtualWrite(V1, CH4_PPM); 
   Blynk.virtualWrite(V2, Sludge_range); 
  
   lcdBlynk1.print(0,0,"CH4 : "+String(CH4_percent)+"%    ");
@@ -88,15 +88,15 @@ void loop() {
   
   lcd.setCursor(0, 0);
   lcd.print("V:"); lcd.print(CH4_Vout); 
-  lcd.print(" CH4:");lcd.print(CH4_value); lcd.print("  ");
+  lcd.print(" PPM:");lcd.print(CH4_PPM); lcd.print("  ");
   lcd.setCursor(0, 1);
   lcd.print("Slg:"); lcd.print(Sludge_range); lcd.print("  ");
   
-  if(sludge >= 100){
+  if(Sludge_range >= 100){
     lcd.setCursor(9, 1);
     lcd.print("(Empty)   ");
     lcdBlynk1.print(0,1,"Sludge : (Empty)  ");
-  } else if(sludge < 30){
+  } else if(Sludge_range < 30){
     lcd.setCursor(9, 1);
     lcd.print("(Full)   ");
     lcdBlynk1.print(0,1,"Sludge : (Full)  ");
@@ -106,7 +106,7 @@ void loop() {
     lcdBlynk1.print(0,1,"Sludge : (Fill) ");
   }
 
-  if(percent >= 65){
+  if(CH4_percent >= 65){
     Blynk.logEvent("ch4_65","Gas Metana CH4 mencapai 65% "); 
     buzzer(8,80);
   }
