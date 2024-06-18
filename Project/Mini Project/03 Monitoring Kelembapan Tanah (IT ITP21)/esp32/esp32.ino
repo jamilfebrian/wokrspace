@@ -75,9 +75,9 @@ void loop() {
   soil = map(soil, 0, 100, 100, 0); //mengubah rentang nilai soil 1-100 ke 100-0
 
 
-  Serial.print(soil); Serial.print(" ");
-  Serial.print(temperature); Serial.print(" ");
-  Serial.print(gass);Serial.println(""); 
+  Serial.print("Soil:"); Serial.print(soil); Serial.print(" ");
+  Serial.print("Temp:"); Serial.print(temperature); Serial.print(" ");
+  Serial.print("Gass:"); Serial.print(gass);Serial.println(""); 
   
   Blynk.virtualWrite(V0, gass);  //mengirimkan data gas ke Blynk
   Blynk.virtualWrite(V1, soil); //mengirimkan data kelembapan tanah ke Blynk

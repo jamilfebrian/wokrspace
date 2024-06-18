@@ -39,8 +39,18 @@ void setID() {
   }
 }
 
-void read_dual_sensors() {
-  
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(SHT_LOX1, OUTPUT);
+  pinMode(SHT_LOX2, OUTPUT);
+
+  digitalWrite(SHT_LOX1, LOW);
+  digitalWrite(SHT_LOX2, LOW);
+  setID();
+}
+
+void loop() {
   lox1.rangingTest(&measure1, false); // pass in 'true' to get debug data printout!
   lox2.rangingTest(&measure2, false); // pass in 'true' to get debug data printout!
 
@@ -61,21 +71,5 @@ void read_dual_sensors() {
   }
   
   Serial.println();
-}
-
-void setup() {
-  Serial.begin(115200);
-
-  pinMode(SHT_LOX1, OUTPUT);
-  pinMode(SHT_LOX2, OUTPUT);
-
-  digitalWrite(SHT_LOX1, LOW);
-  digitalWrite(SHT_LOX2, LOW);
-  setID();
-}
-
-void loop() {
-   
-  read_dual_sensors();
   delay(100);
 }

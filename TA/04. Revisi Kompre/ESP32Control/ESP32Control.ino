@@ -6,24 +6,16 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
 
-// Set your access point network credentials
-const char* ssid = "ESP32-Access-Point";
+const char* ssid = "ESP32 Drone Controll";
 const char* password = "123456789";
 
-bool ledState = 0;
-const int ledPin = 2;
+#define ledPin      2
+#define buzzerPin  13
+#define sprayer     5
 
-/*#include <SPI.h>
-#define BME_SCK 18
-#define BME_MISO 19
-#define BME_MOSI 23
-#define BME_CS 5*/
+bool SprayState = 0;
+Adafruit_BMP280 bmp; 
 
-Adafruit_BMP280 bmp; // I2C
-//Adafruit_BME280 bmp(BME_CS); // hardware SPI
-//Adafruit_BME280 bmp(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
-
-// Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -314,6 +306,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             var state;
             var mydata = event.data;
             var myArray = JSON.parse(mydata);
+            console.log(myArray);
 
             if(myArray[0] == "1"){
               state = "ON";
@@ -354,18 +347,26 @@ const char index_html[] PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
-void notifyClients() {
-  ws.textAll(String(ledState));
+void buzzer(int index = 3, int timer = 80){
+    for(int i=0; i<index; i++){
+      digitalWrite(buzzerPin, HIGH);
+      delay(timer);
+      digitalWrite(buzzerPin, LOW);
+      delay(timer);
+  }
 }
+
+//void notifyClients() {
+//  ws.textAll(String(SprayState));
+//}
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
-    if (strcmp((char*)data, "toggle") == 0) {
-      ledState = !ledState;
-      digitalWrite(ledPin, ledState);
-      notifyClients();
+    if (strcmp((char*)data, "spray") == 0) {
+      SprayState = !SprayState;
+      digitalWrite(sprayer, SprayState);
     }
   }
 }
@@ -374,9 +375,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
              void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
+      digitalWrite(ledPin, HIGH);  buzzer(3);
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
+      digitalWrite(ledPin, LOW);
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
       break;
     case WS_EVT_DATA:
@@ -393,23 +396,10 @@ void initWebSocket() {
   server.addHandler(&ws);
 }
 
-String readTemp() {
-  return String(bmp.readTemperature());
-  //return String(1.8 * bmp.readTemperature() + 32);
-}
-
-String readHumi() {
-  return String(bmp.readAltitude(1013.25));
-}
-
-String readPres() {
-  return String(bmp.readPressure() / 100.0F);
-}
-
 String processor(const String& var){
   Serial.println(var);
   if(var == "STATE"){
-    if (ledState){
+    if (SprayState){
       return "ON";
     }
     else{
@@ -420,14 +410,14 @@ String processor(const String& var){
 }
 
 void setup(){
-  // Serial port for debugging purposes
   Serial.begin(115200);
-  Serial.println();
   pinMode(ledPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(sprayer, OUTPUT);
+   buzzer(1);
   
-  // Setting the ESP as an access point
+  Serial.println();
   Serial.print("Setting AP (Access Point)…");
-  // Remove the password parameter, if you want the AP (Access Point) to be open
   WiFi.softAP(ssid, password);
 
   IPAddress IP = WiFi.softAPIP();
@@ -440,31 +430,23 @@ void setup(){
     request->send_P(200, "text/html", index_html, processor);
   });
 
-  server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", readTemp().c_str());
-  });
-  server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", readHumi().c_str());
-  });
-  server.on("/pressure", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", readPres().c_str());
-  });
-  
-  bool status;
-
-  // default settings
-  // (you can also pass in a Wire library object like &Wire2)
-  status = bmp.begin(0x76);  
+  bool status = bmp.begin(0x76);
   if (!status) {
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    Serial.println("Could not find a valid BMP280 sensor, check wiring!");
     while (1);
   }
   
-  // Start server
   server.begin();
 }
  
 void loop(){
-  ws.cleanupClients();
+  String temperature = String(bmp.readTemperature());
+  String altitude = String(bmp.readAltitude(1013.25));
+  String pressure = String(bmp.readPressure() / 100.0F);  //   [String(SprayState) ,  temperature , pressure, altitude]
+
+  String dataKirim = String( "[\"" + String(SprayState) + "\",\"" + temperature + "\",\"" + pressure+ "\",\"" + altitude +"\"]");
   
+  ws.textAll(dataKirim);
+  ws.cleanupClients();
+  delay(1000);
 }

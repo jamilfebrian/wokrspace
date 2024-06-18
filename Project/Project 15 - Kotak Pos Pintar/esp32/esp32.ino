@@ -202,7 +202,7 @@ void loop() {
       digitalWrite(RELAY_PINTU_UANG, LOW);
       digitalWrite(RELAY_PINTU_PAKET, HIGH);
       buzzer(2,2,200);
-      digitalWrite(LED_PIN, HIGH);z
+      digitalWrite(LED_PIN, HIGH);
         lcd.setCursor(0,0); lcd.print(" Silahkan Ambil ");
         lcd.setCursor(0,1); lcd.print("  Uang Di Atas  ");
       myBot.sendMessage(IDTelegram, "Kotak paket anda dibuka oleh kurir");
