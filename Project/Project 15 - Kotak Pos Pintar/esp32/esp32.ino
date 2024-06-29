@@ -69,6 +69,8 @@ void buzzer(int mode = 0, int index = 3, int timer = 80){
 }
 
 void connectWifi(){
+  long respond;
+  long response = millis();
   Serial.println("Connecting to WiFi...");
       lcd.setCursor(0,0); lcd.print("Menghubungkan Ke");
       lcd.setCursor(0,1); lcd.print("Jaringan Wifi");
@@ -77,24 +79,25 @@ void connectWifi(){
     delay(1000); 
     Serial.print("."); lcd.print(".");
   }  Serial.println("Wifi Terhubung");
+  respond = millis();
+  Serial.print("Waktu Koneksi WIfi : ");  Serial.print(respond-response); Serial.println(" detik");
        lcd.setCursor(0,0); lcd.print(" Jaringan Wifi  ");
        lcd.setCursor(0,1); lcd.print("   Terhubung    ");
        buzzer(2,2);
 }
 
 void loginTelegram(){
+  long respond;
+  long response = millis();
     Serial.println("login in telegram...");
     while (!myBot.testConnection()){
         myBot.setTelegramToken(token);
-      lcd.setCursor(0,0); lcd.print("Menghubungkan Ke");
-      lcd.setCursor(0,1); lcd.print("Telegram....    "); 
-        Serial.print(".");
         delay(100);}
   if(myBot.testConnection()){
-       Serial.println("Telegram connection OK!");
-       lcd.setCursor(0,0); lcd.print("  Bot Telegram  ");
-       lcd.setCursor(0,1); lcd.print("   Terhubung    ");
-       buzzer(2,3);
+    respond = millis();
+       Serial.print("Telegram connection OK!"); 
+       Serial.print("Waktu Koneksi Telegram : ");  
+       Serial.print(respond-response); Serial.println(" detik");
   } else {
        Serial.println("Connection Not OK");
        buzzer(2,5); 
@@ -122,9 +125,7 @@ void setup() {
   logic0 = true;
 
   randomNumber = random(1000, 9999);
-  Serial.println(randomNumber);
-
-  myBot.sendMessage(IDTelegram, "Kotak paket diaktifkan\nKode Paket Anda : " +String(randomNumber));
+  Serial.print("Kode Anda : "); Serial.println(randomNumber);
 }
 
 void loop() {
@@ -134,7 +135,7 @@ void loop() {
   int status_paket = digitalRead(LIMIT_SWICTH_PAKET);
   int status_uang = digitalRead(LIMIT_SWICTH_UANG);
 
-  Serial.println(range);
+  Serial.print("Range : "); Serial.print(range); Serial.println(" cm");
 
   if((millis() - prevMillis) > timerMillis){
     if(cursorLCD == "_"){
@@ -222,7 +223,7 @@ void loop() {
     
         myBot.sendMessage(IDTelegram, "Paket pesanan anda telah sampai,\nSegera cek kelengkapan pesanan anda.");
         
-        myBot.sendMessage(IDTelegram, "Kode Paket Anda : " +String(randomNumber));
+        myBot.sendMessage(IDTelegram, "Kode Paket Diperbarui\nKode Paket Anda : " +String(randomNumber));
         delay(3000); logic3 = false; logic0 = true;
     } else {
         lcd.setCursor(0,0); lcd.print("  Mohon Pintu   ");
@@ -230,12 +231,15 @@ void loop() {
     }
   }
 
-  if (myBot.getNewMessage(msg)){
+long respond;
+long response = millis();
+  if (myBot.getNewMessage(msg)){ 
     if (msg.text.equalsIgnoreCase("/start") || msg.text.equalsIgnoreCase("/menu") || msg.text.equalsIgnoreCase("/help")) {
       myBot.sendMessage(IDTelegram, "Menu :\n\n/code -> Mengecek kode paket.\n/changeCode -> Update kode paket\n/openPaket -> Membuka kotak paket\n/openBrankas ->Membuka kotak brankas\n/status -> Mengecek status isi kotak paket");
+      respond = millis();   Serial.print("Waktu response Telegram : ");  Serial.print(respond-response); Serial.println(" detik");
     } else if (msg.text.equalsIgnoreCase("/changeCode")){
       randomNumber = random(1000, 9999);
-      myBot.sendMessage(IDTelegram, "Kode Paket Anda : " +String(randomNumber));
+      myBot.sendMessage(IDTelegram, "Kode Paket Diperbarui\nKode Paket Anda : " +String(randomNumber));
     } else if (msg.text.equalsIgnoreCase("/code")){
       myBot.sendMessage(IDTelegram, "Kode Paket Anda : " +String(randomNumber));
     } else if (msg.text.equalsIgnoreCase("/openPaket")){
@@ -253,6 +257,8 @@ void loop() {
       } else {
         myBot.sendMessage(IDTelegram, "Paket pesanan anda belum sampai,\nMohon menunggu hingga paket pesanan anda sampai. ");
       }
+    } else if (msg.text.equalsIgnoreCase("p") || msg.text.equalsIgnoreCase("P")){
+      lcd.init(); lcd.backlight(); lcd.clear();
     } else {
       myBot.sendMessage(IDTelegram, "Perintah yang anda masukkan tidak valid!\ntekan /menu untuk melihat daftar perintah");
     }

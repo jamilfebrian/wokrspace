@@ -26,3 +26,5 @@ Surat-surat/
 node_modules/
 .tmp.driveupload/
 desktop.ini
+
+myenv/

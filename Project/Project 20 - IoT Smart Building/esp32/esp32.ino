@@ -8,8 +8,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal_I2C.h>
-
 #include <PZEM004Tv30.h>
+
 #if !defined(PZEM_RX_PIN) && !defined(PZEM_TX_PIN)
     #define PZEM_RX_PIN 16
     #define PZEM_TX_PIN 17
@@ -65,10 +65,9 @@ unsigned long Ctimer = 0;
 unsigned long rfidtimer = 0;
 unsigned long doorlockTimer = 0;
 
-
-static float voltage, current, power, frequency; //variabel untuk menampung sensor tegangan AC
-static String Status_Read_Sensor = ""; //variabel untuk menampung status http request ke spreadsheet
-static bool relayState[6] = {1,1,1,1,1,1}; // variabel menampung status lampu
+static float voltage, current, power, frequency;
+static String Status_Read_Sensor = ""; 
+static bool relayState[6] = {1,1,1,1,1,1};
 
 #define jumlah_kartu 1
 String IDCard[jumlah_kartu] = {"B7 BF A5 6B"};
@@ -142,13 +141,11 @@ void sendDataToSpreadsheet(){
 }
 
 void button(){
-
    String button1 = "";
     while(Serial.available()>0){
       button1 += char(Serial.read());
     } button1.trim(); 
-
-  
+    
   if(millis() - Ctimer > 1000){
     if(button1 == "1"){
       relayState[0] = !relayState[0];
@@ -206,7 +203,6 @@ void readRFID(){
     }
 
    SPI.begin();  mfrc522.PCD_Init();
-   
   String content = "";
   if (!mfrc522.PICC_IsNewCardPresent()) {
      return;
@@ -216,12 +212,10 @@ void readRFID(){
   }
 
   doorlockTimer = millis();
-  
   for (byte i = 0; i < mfrc522.uid.size; i++){
      content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
      content.concat(String(mfrc522.uid.uidByte[i], HEX));
   }  content.toUpperCase();
-  
     for(byte i=0; i<jumlah_kartu; i++){
       if(content.substring(1) == IDCard[i]){
          lcd.setCursor(0,0); lcd.print("    Valid  ID   ");
@@ -264,10 +258,10 @@ void setup(){
 }
 
 void loop(){
-   Blynk.run(); timer.run();
+   Blynk.run(); 
+   timer.run();
    readRFID();
-
-    button();
+   button();
     
      voltage = pzem.voltage(); 
      current = pzem.current();
@@ -276,10 +270,10 @@ void loop(){
 
     if(isnan(voltage) || isnan(current) || isnan(power) || isnan(frequency)){
          Status_Read_Sensor = "FAILED";
-         voltage = 0;
-         current = 0;
-         power = 0;
-         frequency = 0;
+         voltage = isnan(voltage) ? 0 : voltage;
+         current = isnan(current) ? 0 : current;
+         power = isnan(power) ? 0 : power;
+         frequency = isnan(frequency) ? 0 : frequency;
     } else {
          Status_Read_Sensor = "SUCCES";
     }
@@ -292,12 +286,11 @@ void loop(){
   if(digitalRead(MAGNET_SENSOR) && relayState[5] ){
       digitalWrite(BUZZER,HIGH);
   } else if(!digitalRead(MAGNET_SENSOR) && !relayState[5] ){
-    if (millis()-doorlockTimer > 3000){
+    if (millis() - doorlockTimer > 3000){
       digitalWrite(SELENOID,HIGH);
       relayState[5] = HIGH;
       Blynk.virtualWrite(V5, HIGH);
     } digitalWrite(BUZZER,LOW);
-    
   } else if(digitalRead(MAGNET_SENSOR) && !relayState[5] ){
       digitalWrite(BUZZER,LOW);
       doorlockTimer = millis();
@@ -358,7 +351,7 @@ BLYNK_WRITE(V4){
   } else {
    digitalWrite(LAMPU_5,LOW);
    relayState[4] = LOW;
-  }
+  } 
 }
 
 BLYNK_WRITE(V5){

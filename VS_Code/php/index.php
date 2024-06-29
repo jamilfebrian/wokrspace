@@ -1,3 +1,5 @@
 <?php
-
-echo "hello world";
+   
+   $variabel = "hello gusy";
+   echo phpversion();
+?>
