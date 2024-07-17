@@ -1,13 +1,12 @@
 #include "Adafruit_VL53L0X.h"
-#include "DFRobotDFPlayerMini.h"
-DFRobotDFPlayerMini myDFPlayer; 
 
 #define LOX1_ADDRESS 0x30
 #define LOX2_ADDRESS 0x31
 
-#define SHT_LOX1 A1
-#define SHT_LOX2 A2
-#define led 13
+#define SHT_LOX1 4
+#define SHT_LOX2 5
+#define led 12
+#define buzzer 13
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
 Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
@@ -15,20 +14,7 @@ Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
 VL53L0X_RangingMeasurementData_t measure1;
 VL53L0X_RangingMeasurementData_t measure2;
 
-unsigned long currTime=0;
-
-void DFConnect(){
-  if (!myDFPlayer.begin(Serial)) {  
-    digitalWrite(led,LOW);
-    while(true){
-      delay(0); 
-    }
-  }
-  digitalWrite(led,HIGH);
-  myDFPlayer.volume(30);
-  delay(1000);
-  digitalWrite(led,LOW);
-}
+unsigned int currTime=0;
 
 void setID() {
   digitalWrite(SHT_LOX1, LOW);    
@@ -56,14 +42,15 @@ void setID() {
 
 void setup() {
   pinMode(led, OUTPUT);
-  Serial.begin(9600);
-  DFConnect();
+  pinMode(buzzer, OUTPUT);
+  Serial.begin(115200);
 
   pinMode(SHT_LOX1, OUTPUT);
   pinMode(SHT_LOX2, OUTPUT);
 
   digitalWrite(SHT_LOX1, LOW);
   digitalWrite(SHT_LOX2, LOW);
+  
   setID();
 }
 
@@ -74,20 +61,26 @@ void loop() {
   int rangeDepan = measure1.RangeMilliMeter;
   int rangeSamping = measure2.RangeMilliMeter;
 
-  if(rangeDepan <= 50){
+  Serial.print(rangeDepan);
+  Serial.print("  ");
+  Serial.println(rangeSamping);
+
+
+  if(rangeDepan <= 500){
     digitalWrite(led,HIGH);
     if(millis() - currTime >= 2500){
-      myDFPlayer.play(1); 
+      digitalWrite(buzzer, HIGH);
       currTime = millis();
     }
-  } else if (rangeSamping <= 50){
+  } else if (rangeSamping <= 500){
     digitalWrite(led,HIGH);
     if(millis() - currTime >= 2500){
-      myDFPlayer.play(2);
+      digitalWrite(buzzer, HIGH);
       currTime = millis();
     } 
   } else {
     digitalWrite(led,LOW);
+    digitalWrite(buzzer, LOW);
   }
 
   delay(100);

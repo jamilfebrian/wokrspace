@@ -13,8 +13,8 @@
 #define TRIGPIN            18
 #define ECHOPIN            19
 
-#define ssid        "Tinkpad"
-#define password    "12345678"
+#define ssid        "vivo Y27s"
+#define password    "ajai1997"
 #define token       "7111168526:AAGVUM_-6o5o0S3UVcUsgmsFsgd2g6p1Unc"
 #define IDTelegram  msg.sender.id
 
@@ -69,8 +69,6 @@ void buzzer(int mode = 0, int index = 3, int timer = 80){
 }
 
 void connectWifi(){
-  long respond;
-  long response = millis();
   Serial.println("Connecting to WiFi...");
       lcd.setCursor(0,0); lcd.print("Menghubungkan Ke");
       lcd.setCursor(0,1); lcd.print("Jaringan Wifi");
@@ -79,25 +77,25 @@ void connectWifi(){
     delay(1000); 
     Serial.print("."); lcd.print(".");
   }  Serial.println("Wifi Terhubung");
-  respond = millis();
-  Serial.print("Waktu Koneksi WIfi : ");  Serial.print(respond-response); Serial.println(" detik");
        lcd.setCursor(0,0); lcd.print(" Jaringan Wifi  ");
        lcd.setCursor(0,1); lcd.print("   Terhubung    ");
        buzzer(2,2);
 }
 
 void loginTelegram(){
-  long respond;
-  long response = millis();
+       lcd.setCursor(0,0); lcd.print("Menghubungkan Ke");
+       lcd.setCursor(0,1); lcd.print(" Bot Telegram   ");
     Serial.println("login in telegram...");
     while (!myBot.testConnection()){
         myBot.setTelegramToken(token);
         delay(100);}
   if(myBot.testConnection()){
-    respond = millis();
+    lcd.setCursor(0,0); lcd.print("Koneksi Telegram");
+    lcd.setCursor(0,1); lcd.print("   Terhubung    ");
+    buzzer(2,3);
        Serial.print("Telegram connection OK!"); 
        Serial.print("Waktu Koneksi Telegram : ");  
-       Serial.print(respond-response); Serial.println(" detik");
+       delay(1500);
   } else {
        Serial.println("Connection Not OK");
        buzzer(2,5); 
@@ -136,6 +134,12 @@ void loop() {
   int status_uang = digitalRead(LIMIT_SWICTH_UANG);
 
   Serial.print("Range : "); Serial.print(range); Serial.println(" cm");
+  
+  if(range < 30 && range != 0){
+      digitalWrite(LED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
 
   if((millis() - prevMillis) > timerMillis){
     if(cursorLCD == "_"){
@@ -179,7 +183,6 @@ void loop() {
 
   if(logic1){
     if(range < 30 && range != 0){
-      digitalWrite(LED_PIN, HIGH);
       if(x1){
         lcd.setCursor(0,0); lcd.print("  Paket  Telah  ");
         lcd.setCursor(0,1); lcd.print("   Dimasukkan   ");
@@ -192,7 +195,6 @@ void loop() {
     } else {
       lcd.setCursor(0,0); lcd.print("    Silahkan    ");
       lcd.setCursor(0,1); lcd.print(" Masukkan Paket ");
-      digitalWrite(LED_PIN, LOW);
       x1 = true;  logic2 = false; 
     }
   }
@@ -231,12 +233,9 @@ void loop() {
     }
   }
 
-long respond;
-long response = millis();
   if (myBot.getNewMessage(msg)){ 
     if (msg.text.equalsIgnoreCase("/start") || msg.text.equalsIgnoreCase("/menu") || msg.text.equalsIgnoreCase("/help")) {
       myBot.sendMessage(IDTelegram, "Menu :\n\n/code -> Mengecek kode paket.\n/changeCode -> Update kode paket\n/openPaket -> Membuka kotak paket\n/openBrankas ->Membuka kotak brankas\n/status -> Mengecek status isi kotak paket");
-      respond = millis();   Serial.print("Waktu response Telegram : ");  Serial.print(respond-response); Serial.println(" detik");
     } else if (msg.text.equalsIgnoreCase("/changeCode")){
       randomNumber = random(1000, 9999);
       myBot.sendMessage(IDTelegram, "Kode Paket Diperbarui\nKode Paket Anda : " +String(randomNumber));

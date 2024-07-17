@@ -14,8 +14,9 @@ DFRobotDFPlayerMini myDFPlayer;
 #define button8 4
 #define ledGreen 13
 #define ledRed 12
+#define buzzerPin A0
 
-
+int counter = 0;
 static int a=0,b=0,c=0,d=0,e=0,f=0;
 int set_volume = 30;  //Set volume value. From 0 to 30
 
@@ -36,6 +37,15 @@ void DFConnect(){
   myDFPlayer.volume(set_volume); 
 }
 
+void buzzer(int index = 1, int period = 75){
+  for(int i=0; i<index; i++){
+    digitalWrite(buzzerPin, HIGH);
+    delay(period);
+    digitalWrite(buzzerPin, LOW);
+    delay(period);
+  } 
+}
+
 void setup() {
  pinMode(button1,INPUT);
  pinMode(button2,INPUT);
@@ -47,11 +57,13 @@ void setup() {
  pinMode(button8,INPUT);
  pinMode(ledRed, OUTPUT);
  pinMode(ledGreen, OUTPUT);
+ pinMode(buzzerPin, OUTPUT);
+
 
   Serial.begin(9600); 
   mySerial.begin(9600);
   DFConnect();
-
+   buzzer();
 }
 
 void loop() {
@@ -67,11 +79,16 @@ void loop() {
 
  if( A || B || C || D || E || F || play ){
   digitalWrite(ledGreen,HIGH);
+  if(counter == 0){
+    buzzer();
+    counter++;
+  }
  } else if(hapus){
    digitalWrite(ledRed,HIGH);
  } else {
   digitalWrite(ledGreen,LOW);
   digitalWrite(ledRed,LOW);
+  counter = 0;
  }
 
 // mengambil nilai logika huruf
