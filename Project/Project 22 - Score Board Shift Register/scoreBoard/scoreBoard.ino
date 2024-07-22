@@ -40,8 +40,28 @@ byte segChar[]={
   0b11111110, // 8
   0b11110110, // 9
   0b11111101, // 10
-  0b00000000, // 11 off
-  0b11111111, // 12
+  0b01100001, // 11
+  0b11011011, // 12
+  0b11110011, // 13
+  0b01100111, // 14
+  0b10110111, // 15
+  0b10111111, // 16
+  0b11100001, // 17
+  0b11111111, // 18
+  0b11110111, // 19
+};
+
+byte segChar2[]={
+  0b11111101, // 0
+  0b01100001, // 1
+  0b11011011, // 2
+  0b11110011, // 3
+  0b01100111, // 4
+  0b10110111, // 5
+  0b10111111, // 6
+  0b11100001, // 7
+  0b11111111, // 8
+  0b11110111, // 9
 };
 
 
@@ -89,7 +109,8 @@ if(data == "GuestScore+"){
 }
 
 if(data == "Quarter"){
-  Quarter++;
+  Quarter = (Quarter<10)? Quarter+1 : Quarter;
+  Quarter = (Quarter>=10)? 0 : Quarter;
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[Quarter]);
 } else {
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[Quarter]);
@@ -193,7 +214,7 @@ if(timerStart){
     timerStart = false; 
   } 
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[detik1]);
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[detik2]);
+  shiftOut(dataPin, clockPin, MSBFIRST, segChar2[detik2]);
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[menit1]);
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[menit2]);
 } else {
@@ -213,7 +234,7 @@ if(timerStart){
     }
   }
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[detik1]);
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[detik2]);
+  shiftOut(dataPin, clockPin, MSBFIRST, segChar2[detik2]);
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[menit1]);
   shiftOut(dataPin, clockPin, MSBFIRST, segChar[menit2]);
 }

@@ -98,8 +98,19 @@ void loop() {
         }
           
         if(key == '*'){
-          keyword = "00";
+          keyword = "00"; keywords = 0;
           update_display("00");
+          if(home){
+            Serial.println("Hres");
+            for(int i=0; i<12; i++){
+              HomeScore[i] = 0;
+            }
+          } else if(guest){
+            Serial.println("Gres");
+            for(int i=0; i<12; i++){
+              guestScore[i] = 0;
+            }
+          }
         } else if(key == 'A'){ //==== HOME
           digitalWrite(LED1,HIGH);
           digitalWrite(LED2,LOW);
@@ -114,9 +125,9 @@ void loop() {
           
         } else if(key == 'C'){  //==== Plus
           if(home && keywords>=4 && keywords<=15){
-            HomeScore[keywords-4] = (HomeScore[keywords-4]<4) ? HomeScore[keywords-4]+1 : HomeScore[keywords-4]; 
+            HomeScore[keywords-4] = (HomeScore[keywords-4]<5) ? HomeScore[keywords-4]+1 : HomeScore[keywords-4]; 
           } else if(guest && keywords>=4 && keywords<=15){
-            guestScore[keywords-4] = (guestScore[keywords-4]<4) ? guestScore[keywords-4]+1 : guestScore[keywords-4];
+            guestScore[keywords-4] = (guestScore[keywords-4]<5) ? guestScore[keywords-4]+1 : guestScore[keywords-4];
           }
           if(home){
             String dataKirim = "H";
@@ -148,6 +159,17 @@ void loop() {
           }
         } else if(key == '#'){ //==== GUEST
             keyword = "00"; 
+            if(home){
+            String dataKirim = "H";
+            for(int i=0; i<12; i++){
+              dataKirim += String(HomeScore[i]);
+            } Serial.println(dataKirim);
+          } else if(guest){
+            String dataKirim = "G";
+            for(int i=0; i<12; i++){
+              dataKirim += String(guestScore[i]);
+            } Serial.println(dataKirim);
+          }
         }
   }
 }

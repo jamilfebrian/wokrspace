@@ -17,13 +17,19 @@ byte colPins[4] = {26, 25, 33, 32}; // konektor kolom ke pin ESP32
 Keypad myKeypad = Keypad(makeKeymap(keys), rowPins, colPins, 4, 4);
 
 // {0x40, 0x91, 0x51, 0x9B, 0xD8, 0xA4};
-uint8_t broadcastAddress[] = {0xE8, 0x6B, 0xEA, 0xD4, 0x6F, 0x44};
+uint8_t AddressBoard[] = {0xE8, 0x6B, 0xEA, 0xD4, 0x6F, 0x44};
+uint8_t AddressHomeBoard[] = {0xE0, 0x98, 0x06, 0x8F, 0xD1, 0x79};
+uint8_t AddressGuestBoard[] = {0x84, 0xF3, 0xEB, 0x98, 0xCD, 0xA7}; 
+
+
 typedef struct struct_message {
   char a[32]; // Pesan ESP
 } struct_message;
 
 struct_message myData;
 esp_now_peer_info_t peerInfo;
+esp_now_peer_info_t peerInfoHome;
+esp_now_peer_info_t peerInfoGuest;
 
 unsigned long currentTime = 0;
 String HomeScore  = "";
@@ -70,12 +76,25 @@ void setup(){
   } 
   
   esp_now_register_send_cb(OnDataSent);
-  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  memcpy(peerInfo.peer_addr, AddressBoard, 6);
+  memcpy(peerInfoHome.peer_addr, AddressHomeBoard, 6);
+  memcpy(peerInfoGuest.peer_addr, AddressGuestBoard, 6);
+  
   peerInfo.channel = 0;  
   peerInfo.encrypt = false;
+  peerInfoHome.channel = 0;  
+  peerInfoHome.encrypt = false;
+  peerInfoGuest.channel = 0;  
+  peerInfoGuest.encrypt = false;
   
   // Add peer        
   if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  } if (esp_now_add_peer(&peerInfoHome) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  } if (esp_now_add_peer(&peerInfoGuest) != ESP_OK){
     Serial.println("Failed to add peer");
     return;
   }
@@ -103,9 +122,16 @@ void loop(){
   String Pesan = dataPesan();
 
   if(Pesan != ""){
-    strcpy(myData.a, Pesan.c_str());
-    esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
-  }
+    if(Pesan[0] == 'H'){
+       Serial.println(Pesan.c_str());
+       strcpy(myData.a, Pesan.c_str());
+       esp_now_send(AddressHomeBoard, (uint8_t *) &myData, sizeof(myData));
+    } else if(Pesan[0] == 'G'){
+       Serial.println(Pesan.c_str());
+       strcpy(myData.a, Pesan.c_str());
+       esp_now_send(AddressGuestBoard, (uint8_t *) &myData, sizeof(myData));
+    }
+  } 
  
   if (key != NO_KEY) {
     buzzer();
@@ -143,27 +169,27 @@ void loop(){
     } else if(key == '#'){
       strcpy(myData.a, "Timer-");
     } 
-    esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+    esp_now_send(AddressBoard, (uint8_t *) &myData, sizeof(myData));
   }
 
 
   if(millis() - currentTime > 1000){
     if(!value1){
       strcpy(myData.a, "HomeTout+");
-      esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+      esp_now_send(AddressBoard, (uint8_t *) &myData, sizeof(myData));
       currentTime = millis();
     } else if (!value2){
       strcpy(myData.a, "HomeTout-");
-      esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+      esp_now_send(AddressBoard, (uint8_t *) &myData, sizeof(myData));
       currentTime = millis();
     } else if (!value3){
       strcpy(myData.a, "GuestTout+");
-      esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+      esp_now_send(AddressBoard, (uint8_t *) &myData, sizeof(myData));
       currentTime = millis();
     }
     else if (!value4){
       strcpy(myData.a, "GuestTout-");
-      esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+      esp_now_send(AddressBoard, (uint8_t *) &myData, sizeof(myData));
       currentTime = millis();
     }
   }

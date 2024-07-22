@@ -12,7 +12,7 @@
 #define IR6Pin 7
 
 #define servoPin1  9
-#define servoPin2  10
+#define servoPin2  8
 
 Servo servoPintuMasuk;
 Servo servoPintuKeluar;
@@ -25,8 +25,8 @@ bool statusServoKeluar;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(button1, INPUT);
-  pinMode(button2, INPUT);
+  pinMode(button1, INPUT_PULLUP);
+  pinMode(button2, INPUT_PULLUP);
 
   pinMode(IR1Pin, INPUT);
   pinMode(IR2Pin, INPUT);
@@ -55,12 +55,17 @@ void loop() {
   bool IR5 = digitalRead(IR5Pin);
   bool IR6 = digitalRead(IR6Pin); 
 
-  String statusParkir1 = (IR1) ? "PENUH" : "KOSONG";
-  String statusParkir2 = (IR2) ? "PENUH" : "KOSONG";
-  String statusParkir3 = (IR3) ? "PENUH" : "KOSONG";
-  String statusParkir4 = (IR4) ? "PENUH" : "KOSONG";
-  String statusParkir5 = (IR5) ? "PENUH" : "KOSONG";
-  String statusParkir6 = (IR6) ? "PENUH" : "KOSONG";
+  Serial.print(pintuMasuk);Serial.print(pintuKeluar);Serial.print(" ");
+  Serial.print(IR1);Serial.print(IR2);
+  Serial.print(IR3);Serial.print(IR4);
+  Serial.print(IR5);Serial.println(IR6);
+
+  String statusParkir1 = (!IR1) ? "PENUH" : "KOSONG";
+  String statusParkir2 = (!IR2) ? "PENUH" : "KOSONG";
+  String statusParkir3 = (!IR3) ? "PENUH" : "KOSONG";
+  String statusParkir4 = (!IR4) ? "PENUH" : "KOSONG";
+  String statusParkir5 = (!IR5) ? "PENUH" : "KOSONG";
+  String statusParkir6 = (!IR6) ? "PENUH" : "KOSONG";
 
   lcd.setCursor(0,0);  lcd.print("     SLOT PARKIR    ");
   lcd.setCursor(0,1);  lcd.print("P1:"); lcd.print(statusParkir1);  lcd.print("  ");
@@ -71,14 +76,14 @@ void loop() {
   lcd.setCursor(10,3); lcd.print("P6:"); lcd.print(statusParkir6);  lcd.print("  ");
 
   if(millis() - currenTime > 1500){
-    if(pintuMasuk){
+    if(!pintuMasuk){
       statusServoMasuk =! statusServoMasuk;
       if(statusServoMasuk){
         servoPintuMasuk.write(90);
       } else {
         servoPintuMasuk.write(0);
       } currenTime = millis();
-    } else if (pintuKeluar){
+    } else if (!pintuKeluar){
       statusServoKeluar =! statusServoKeluar;
       if(statusServoKeluar){
         servoPintuKeluar.write(90);
