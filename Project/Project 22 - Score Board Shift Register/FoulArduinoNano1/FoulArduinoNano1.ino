@@ -5,6 +5,8 @@ SoftwareSerial myserial(4,5);
 #define dataPin   A2
 #define clockPin  A3
 
+bool logic1 = true;
+
 byte segChar[]={
   0b00000000, // 0
   0b00001000, // 1
@@ -59,7 +61,7 @@ void setup() {
    pinMode(13, OUTPUT);
 
    digitalWrite(13, HIGH);
-   resetDisplay();
+   
 }
 
 void loop() {
@@ -67,7 +69,9 @@ void loop() {
   String myData = dataReceive();
   delay(300);
 
+
   if(myData != "" ){
+    
     if(myData == "Hres"){
       resetDisplay(); return;
     } else if(myData == "Gres"){
@@ -81,4 +85,10 @@ void loop() {
     }
     digitalWrite(strobePin, HIGH);
   } 
+
+  if(logic1){
+    resetDisplay();
+    logic1 = false;
+  }
+  
 }
