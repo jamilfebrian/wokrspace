@@ -55,6 +55,7 @@ void loop() {
   String statusParkir4 = (!IR4) ? "PENUH" : "KOSONG";
   String statusParkir5 = (!IR5) ? "PENUH" : "KOSONG";
   String statusParkir6 = (!IR6) ? "PENUH" : "KOSONG";
+  String statusAll     = (!IR1 && !IR2 && !IR3 && !IR4 && !IR5 && !IR6) ?  "PARKIR PENUH" : "SLOT PARKIR";
 
   if(IR1){digitalWrite(LED1, HIGH);} else {digitalWrite(LED1, LOW);}
   if(IR2){digitalWrite(LED2, HIGH);} else {digitalWrite(LED2, LOW);}
@@ -63,7 +64,7 @@ void loop() {
   if(IR5){digitalWrite(LED5, HIGH);} else {digitalWrite(LED5, LOW);}
   if(IR6){digitalWrite(LED6, HIGH);} else {digitalWrite(LED6, LOW);}
 
-  lcd.setCursor(0,0);  lcd.print("     SLOT PARKIR    ");
+  lcd.setCursor(0,0);  lcd.print("     " + statusAll + "     "); 
   lcd.setCursor(0,1);  lcd.print("P1:"); lcd.print(statusParkir1);  lcd.print("  ");
   lcd.setCursor(10,1); lcd.print("P2:"); lcd.print(statusParkir2);  lcd.print("  ");
   lcd.setCursor(0,2);  lcd.print("P3:"); lcd.print(statusParkir3);  lcd.print("  ");
