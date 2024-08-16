@@ -2,6 +2,8 @@
 #include <WiFi.h>
 #include <Keypad.h>
 
+#define ledRed   23
+#define ledGreen 15
 #define button1 19
 #define button2 21
 #define button3  5
@@ -66,9 +68,19 @@ void splitString(String str, char delimiter, String &part1, String &part2) {
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.print("\r\nLast Packet Send Status:\t");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  if(status == ESP_NOW_SEND_SUCCESS){
+    digitalWrite(ledGreen, HIGH);
+    digitalWrite(ledRed, LOW);
+  } else {
+    digitalWrite(ledGreen, LOW);
+    digitalWrite(ledRed, HIGH);
+  }
 }
 
 void setup(){
+  Serial.begin(115200);
+  Serial2.begin(115200, SERIAL_8N1, 16, 17);
+  
   WiFi.mode(WIFI_STA);
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
@@ -99,16 +111,19 @@ void setup(){
     return;
   }
   
-  Serial.begin(115200);
-  Serial2.begin(115200);
+  
   
   pinMode(button1, INPUT_PULLUP);
   pinMode(button2, INPUT_PULLUP);
   pinMode(button3, INPUT_PULLUP);
   pinMode(button4, INPUT_PULLUP);
   pinMode(BuzzerPin, OUTPUT);
+  pinMode(ledRed, OUTPUT);
+  pinMode(ledGreen, OUTPUT);
   strcpy(myData.a, "<empty>");
-  
+
+  digitalWrite(ledRed, LOW);
+  digitalWrite(ledGreen, LOW);
 }
  
 void loop(){

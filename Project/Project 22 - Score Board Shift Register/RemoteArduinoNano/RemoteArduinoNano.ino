@@ -1,4 +1,5 @@
 #include <Keypad.h>
+#include <EEPROM.h>
 
 #define strobePin  A1
 #define dataPin   A2
@@ -67,8 +68,18 @@ void update_display(String index){
 }
 
 void setup() {
-  Serial.begin(115200);
+  for(int i=0; i<12; i++){
+    EEPROM.read(i+1);
+    EEPROM.read(i+13);
+  }
   
+  for(int i=0; i<12; i++){
+    HomeScore[i] = EEPROM.read(i+1);
+    guestScore[i] = EEPROM.read(i+13);
+  }
+  
+  Serial.begin(115200);
+ 
   pinMode(strobePin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
@@ -80,6 +91,8 @@ void setup() {
   digitalWrite(LED2,HIGH);
 
   update_display("00");
+  Serial.println("Hres");
+  Serial.println("Gres");
 
 }
 
@@ -104,11 +117,13 @@ void loop() {
             Serial.println("Hres");
             for(int i=0; i<12; i++){
               HomeScore[i] = 0;
+              EEPROM.write(i+1 ,HomeScore[i]);
             }
           } else if(guest){
             Serial.println("Gres");
             for(int i=0; i<12; i++){
               guestScore[i] = 0;
+              EEPROM.write(i+13 ,guestScore[i]);
             }
           }
         } else if(key == 'A'){ //==== HOME
@@ -126,8 +141,10 @@ void loop() {
         } else if(key == 'C'){  //==== Plus
           if(home && keywords>=4 && keywords<=15){
             HomeScore[keywords-4] = (HomeScore[keywords-4]<5) ? HomeScore[keywords-4]+1 : HomeScore[keywords-4]; 
+            EEPROM.write(keywords-4+1 ,HomeScore[keywords-4]);
           } else if(guest && keywords>=4 && keywords<=15){
             guestScore[keywords-4] = (guestScore[keywords-4]<5) ? guestScore[keywords-4]+1 : guestScore[keywords-4];
+            EEPROM.write(keywords-4+13 ,guestScore[keywords-4]);
           }
           if(home){
             String dataKirim = "H";
@@ -143,8 +160,10 @@ void loop() {
         } else if(key == 'D'){  //==== Minus
           if(home && keywords>=4 && keywords<=15){
             HomeScore[keywords-4] = (HomeScore[keywords-4]>0) ? HomeScore[keywords-4]-1 : HomeScore[keywords-4]; 
+            EEPROM.write(keywords-4+1 ,HomeScore[keywords-4]);
           } else if(guest && keywords>=4 && keywords<=15){
-            guestScore[keywords-4] = (guestScore[keywords-4]>0) ? guestScore[keywords-4]-1 : guestScore[keywords-4]; ;
+            guestScore[keywords-4] = (guestScore[keywords-4]>0) ? guestScore[keywords-4]-1 : guestScore[keywords-4];
+            EEPROM.write(keywords-4+13 ,guestScore[keywords-4]);
           }
           if(home){
             String dataKirim = "H";
@@ -157,7 +176,7 @@ void loop() {
               dataKirim += String(guestScore[i]);
             } Serial.println(dataKirim);
           }
-        } else if(key == '#'){ //==== GUEST
+        } else if(key == '#'){ //==== Refresh
             keyword = "00"; 
             if(home){
             String dataKirim = "H";

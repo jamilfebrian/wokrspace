@@ -1,15 +1,19 @@
 #include "DFRobotDFPlayerMini.h"
 #include <LiquidCrystal_I2C.h>
+#include <Servo.h>
 
 DFRobotDFPlayerMini myDFPlayer; 
 LiquidCrystal_I2C lcd(0x27,16,2); 
+Servo myServo; 
 
 const int BUZZER = 23;
+const int adjustPin = 37;
 const int LED[12] = {2,3,4,5,6,7,8,9,10,11,12,13};
 const int stepper[4] = {31, 29, 27, 25};
 
 #define stepperSpeed 40
-#define STEP 42
+#define stepperStep 42
+
 
 void buzzer(int x=2, int timer=100){
   for(int i=0; i<x; i++){
@@ -20,6 +24,7 @@ void buzzer(int x=2, int timer=100){
 
 void setup() {
   pinMode(BUZZER, OUTPUT);
+  pinMode(adjustPin, INPUT_PULLUP);
   buzzer();
 
   Serial.begin(9600);
@@ -31,9 +36,10 @@ void setup() {
   delay(1000);
 
   for(int i=0; i<12; i++){
-    if(i<4){
-      pinMode(stepper[i], OUTPUT);
-    } pinMode(LED[i], OUTPUT);
+    pinMode(LED[i], OUTPUT);
+  }
+  for(int i=0; i<4; i++){
+    pinMode(stepper[i], OUTPUT);
   }
 
   DFPlayerConnect(); myDFPlayer.play(12);
@@ -43,12 +49,14 @@ void setup() {
 
 void loop() {
   for(int i=0; i<12; i++){
-     clockWise(STEP);
-     digitalWrite(LED[i], HIGH);
-     myDFPlayer.play(i+1);
-     Serial.println(i+1);
-  } 
-
+      clockWise(stepperStep);
+      digitalWrite(LED[i], HIGH);
+      if(!digitalRead(adjustPin)){
+         break;
+      }
+      myDFPlayer.play(i+1);
+      Serial.println(i+1);
+  }
   for(int i=0; i<12; i++){
      digitalWrite(LED[i], LOW);
   }
@@ -67,6 +75,9 @@ void counterClockWise(int step){
   for(int h=0; h<=step; h++){
     for(int i=0; i<4; i++){
       for(int j=0; j<4; j++){
+        if(!digitalRead(adjustPin)){
+          return;
+        }
         if(i==j){
           digitalWrite(stepper[j], HIGH);
         } else {
@@ -83,6 +94,9 @@ void clockWise(int step){
   for(int h=0; h<=step; h++){
     for(int i=3; i>=0; i--){
       for(int j=3; j>=0; j--){
+        if(!digitalRead(adjustPin)){
+          return;
+        }
         if(i==j){
           digitalWrite(stepper[j], HIGH);
         } else {
