@@ -6,7 +6,6 @@
 #include <DallasTemperature.h>
 #include <LiquidCrystal_I2C.h>
 #include <NewPing.h>
-#include <EEPROM.h> 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include "BlynkSimpleEsp32.h"
@@ -125,7 +124,8 @@ void setup() {
 void loop() {
   
   timer.run();  Blynk.run(); 
-  sensors.requestTemperatures(); 
+  
+   sensors.requestTemperatures(); 
    temperatureC = sensors.getTempCByIndex(0);
    temperatureF = sensors.getTempFByIndex(0);
    

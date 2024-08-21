@@ -7,8 +7,10 @@
 #include <LiquidCrystal_I2C.h>
 #include "Adafruit_VL53L0X.h"
 
-#define ssid "Qoqo"
-#define password "qoqookee"
+//#define ssid "Qoqo"
+//#define password "qoqookee"
+#define ssid "Tinkpad"
+#define password "12345678"
 #define token BLYNK_AUTH_TOKEN
 
 WidgetLCD lcdBlynk1(V9);
@@ -75,20 +77,22 @@ void loop() {
   float CH4_ratio = CH4_RS / CH4_R0;
   float CH4_PPM = a * pow(CH4_ratio, b);
   float CH4_PPM_Percent = CH4_PPM / 10000;
+
+  long mappedValue = map(CH4_value, 0, 4095, 1, 10000);
   
   
   int Sludge_range = lox.readRange()/10;
   Sludge_range = (Sludge_range >= 100) ? 100 : Sludge_range;
 
-  Blynk.virtualWrite(V1, CH4_PPM); 
+  Blynk.virtualWrite(V1, mappedValue); 
   Blynk.virtualWrite(V2, Sludge_range); 
  
   lcdBlynk1.print(0,0,"CH4 : "+String(CH4_percent)+"%    ");
 
   
   lcd.setCursor(0, 0);
-  lcd.print("V:"); lcd.print(CH4_Vout); 
-  lcd.print(" PPM:");lcd.print(CH4_PPM); lcd.print("  ");
+//  lcd.print("V:"); lcd.print(CH4_Vout); 
+  lcd.print(" PPM:");lcd.print(mappedValue); lcd.print("  ");
   lcd.setCursor(0, 1);
   lcd.print("Slg:"); lcd.print(Sludge_range); lcd.print("  ");
   
@@ -107,8 +111,11 @@ void loop() {
   }
 
   if(CH4_percent >= 65){
+    digitalWrite(relay2, HIGH);
     Blynk.logEvent("ch4_65","Gas Metana CH4 mencapai 65% "); 
     buzzer(8,80);
+  } else {
+    digitalWrite(relay2, LOW);
   }
 }
 
@@ -118,5 +125,15 @@ BLYNK_WRITE(V0){
     digitalWrite(relay1, HIGH);
   } else {
     digitalWrite(relay1, LOW);
+  }
+}
+
+BLYNK_WRITE(V10){
+  int pinValue = param.asInt();
+  if(pinValue){
+    lcd.init();
+    lox.begin();
+  } else {
+    
   }
 }

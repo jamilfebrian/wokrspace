@@ -1,25 +1,57 @@
-const int sensorPin = 26;  // Pin sensor MPX5 terhubung ke pin 26 ESP32
+#include <Wire.h>
+#include <Adafruit_MLX90614.h>
+#include "MAX30100_PulseOximeter.h"
+
+// Inisialisasi objek untuk sensor suhu MLX90614
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+
+// Inisialisasi objek untuk sensor detak jantung MAX30100
+PulseOximeter pox;
+
+uint32_t tsLastReport = 0;
 
 void setup() {
-  Serial.begin(115200);  // Inisialisasi Serial Monitor
+  Serial.begin(115200);
+  
+  // Inisialisasi sensor MLX90614
+  mlx.begin();
+
+  // Inisialisasi sensor MAX30100
+  pox.begin();
+
+  // Atur callback ketika detak jantung baru terdeteksi
+  pox.setOnBeatDetectedCallback(onBeatDetected);
 }
 
 void loop() {
-  // Baca nilai analog dari sensor
-  int sensorValue = analogRead(sensorPin);
-  
-  // Konversi nilai analog ke tekanan (dalam pascal)
-  // Misalnya, sensor MPX5 memberikan output antara 0 hingga 5V, dan ini dikonversi ke nilai tekanan
-  // Tekanan dalam Pascal dihitung menggunakan rumus:
-  // tekanan (Pascal) = (sensorValue / 4095.0) * 5000000
-  // Catatan: Ganti nilai '5000000' dengan konstanta yang sesuai untuk sensor Anda
-  
-  float tekanan = (sensorValue / 4095.0) * 5000000;  // Konversi nilai ADC ke tekanan dalam Pascal
-  
-  // Tampilkan nilai tekanan di Serial Monitor
-  Serial.print("Tekanan: ");
-  Serial.print(tekanan);
-  Serial.println(" Pascal");
-  
-  delay(1000);  // Tunggu 1 detik sebelum membaca ulang
+  // Proses data dari sensor MAX30100
+  pox.update();
+
+  // Baca suhu dari sensor MLX90614
+  float suhuObjek = mlx.readObjectTempC();
+  float suhuAmbien = mlx.readAmbientTempC();
+
+  // Setiap 1 detik, tampilkan data suhu, SpO2, dan detak jantung
+  if (millis() - tsLastReport > 1000) {
+    tsLastReport = millis();
+
+    Serial.print("Suhu Objek: ");
+    Serial.print(suhuObjek);
+    Serial.println(" °C");
+
+    Serial.print("Suhu Ambien: ");
+    Serial.print(suhuAmbien);
+    Serial.println(" °C");
+
+    Serial.print("Detak Jantung: ");
+    Serial.print(pox.getHeartRate());
+    Serial.print(" bpm / SpO2: ");
+    Serial.print(pox.getSpO2());
+    Serial.println(" %");
+  }
+}
+
+// Fungsi callback saat detak jantung terdeteksi
+void onBeatDetected() {
+  Serial.println("Detak jantung terdeteksi!");
 }
