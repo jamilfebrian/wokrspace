@@ -62,7 +62,7 @@
             display: inline;
             background-color: #00e1f1;
             outline: auto;
-            width: 120px;
+            width: 200px;
             height: 50px;
             font-size: 20px;
             font-family: "Lucida Console", "Courier New", monospace;
@@ -79,109 +79,14 @@
             background-color: #00b0bd;
         }
 
-        .mode {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 5px;
-            padding: 5px;
-        }
-
-        .mode form #mode {
-            width: 200px;
-            height: 30px;
-            text-align: center;
-        }
-
-        .mode button,
-        .takeoff button {
-            box-sizing: auto;
-            background-color: #00e1f1;
-            outline: auto;
-            width: 100px;
-            height: auto;
-            font-size: auto;
-            font-family: "Lucida Console", "Courier New", monospace;
-        }
-
-        .mode button:hover,
-        .takeoff button:hover {
-            cursor: pointer;
-            background-color: #0f8b8d;
-        }
-
-        .mode button:active,
-        .takeoff button:active {
-            box-shadow: 2 2px #CDCDCD;
-            transform: translateY(2px);
-            background-color: #00b0bd;
-        }
-
-        .takeoff {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .takeoff form #Takeoff {
-            width: 200px;
-            height: 30px;
-            text-align: center;
-        }
-
-        .yaw-button {
-            display: flex;
-            justify-content: center;
-            gap: 70px;
-            margin-bottom: 10px;
-            margin-top: 10px;
-        }
-
-        .yaw-button button {
-            width: 100px;
-            height: 50px;
+        p.status {
+            font-family: "Times New Roman", Times, serif;
             font-size: 30px;
-            border-radius: 20px;
-            margin: 5px;
+            display: block;
         }
 
-        .yaw-button button:hover,
-        .left-right button:hover,
-        button.up:hover,
-        button.down:hover {
-            cursor: pointer;
-            background-color: #c6feff;
-        }
-
-        .yaw-button button:active,
-        .left-right button:active,
-        button.up:active,
-        button.down:active {
-            box-shadow: 2 2px #CDCDCD;
-            transform: translateY(2px);
-            background-color: #85b1b4;
-        }
-
-        .stick button.up,
-        .stick button.down {
-            width: 60px;
-            height: 60px;
-            font-size: 30px;
-            border-radius: 50px;
-            text-align: center;
-        }
-
-        .left-right {
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-        }
-
-        .left-right button {
-            width: 60px;
-            height: 60px;
-            font-size: 30px;
-            border-radius: 50px;
+        p.status #arming {
+            color: rgb(141, 80, 80);
         }
 
         .state {
@@ -223,7 +128,6 @@
             margin: auto;
             margin-top: 20px;
             background-color: #bcffc1;
-            ;
             box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
             padding-top: 10px;
             padding-bottom: 20px;
@@ -248,17 +152,18 @@
     <div class="content">
         <div class="card">
             <div class="command">
-                <button type="button" class="connect" id="connect">Connect</button>
+                <button type="button" class="connect" id="connect" onclick="toggleButtonText()">CONNECT</button>
                 <button type="button" class="armed" id="armed">Armed</button>
             </div>
 
-
-            <p style="font-family: 'Courier New', Courier, monospace;">
-                Mode : <strong><span id="Modes">GUIDED</span></strong><br>
-                Altitude : <span id="altitude">2</span>m
+            <p class="status">
+                <strong>Connection : <span id="status-koneksi">DISCONNECTED</span></strong><br>
+                <strong>Status : <span id="arming">DISARMED</span></strong><br>
+                <strong>Mode : <span id="Modes">GUIDED</span></strong><br>
+                <strong>Altitude : <span id="altitude">2</span>m</strong>
             </p>
 
-            <h2 class="gpio2">Output - GPIO 2</h2>
+            <h2 class="gpio18">Output - GPIO 18</h2>
             <p class="state">State: <span id="state">%STATE%</span></p>
             <p><button type="button" id="sprayer" class="sprayer">Spray</button></p>
         </div>
@@ -273,62 +178,17 @@
     </div>
 
     <script>
-        var gateway = `ws://${window.location.hostname}/ws`;
-        var websocket;
-        window.addEventListener('load', onLoad);
+        function toggleButtonText() {
+            var connect = document.getElementById("connect");
+            var statusKoneksi = document.getElementById("status-koneksi");
 
-        function initWebSocket() {
-            console.log('Trying to open a WebSocket connection...');
-            websocket = new WebSocket(gateway);
-            websocket.onopen = onOpen;
-            websocket.onclose = onClose;
-            websocket.onmessage = onMessage; // <-- add this line
-        }
-        function onOpen(event) {
-            console.log('Connection opened');
-        }
-        function onClose(event) {
-            console.log('Connection closed');
-            setTimeout(initWebSocket, 2000);
-        }
-        function onMessage(event) {
-            var state;
-            var mydata = event.data;
-            var myArray = JSON.parse(mydata);
-
-            if (myArray[0] == "1") {
-                state = "ON";
+            if (connect.innerHTML === "CONNECT") {
+                connect.innerHTML = "DISCONNECT";
+                statusKoneksi.innerHTML = "CONNECTED";
             } else {
-                state = "OFF";
+                connect.innerHTML = "CONNECT";
+                statusKoneksi.innerHTML = "DISCONNECTED";
             }
-
-            document.getElementById('state').innerHTML = state;
-            document.getElementById('spray').innerHTML = state;
-            document.getElementById('temp').innerHTML = myArray[1];
-            document.getElementById('press').innerHTML = myArray[2];
-            document.getElementById('alt').innerHTML = myArray[3];
-            document.getElementById('gs').innerHTML = 67;
-            document.getElementById('yaw').innerHTML = 90;
-        }
-        function onLoad(event) {
-            initWebSocket();
-            initButton();
-        }
-        function initButton() {
-            document.getElementById('sprayer').addEventListener('click', toggle);
-        }
-
-        function toggle() {
-            websocket.send('spray');
-        }
-
-        function mousedown(obj) {
-            obj.style.backgroundColor = "#dddddd";
-            obj.style.textIndent = "-9999px";
-        }
-        function mouseup(obj) {
-            obj.style.backgroundColor = "#ffffff";
-            obj.style.textIndent = "1px";
         }
     </script>
 </body>

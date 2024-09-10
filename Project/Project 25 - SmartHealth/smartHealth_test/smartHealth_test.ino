@@ -40,6 +40,8 @@ DFRobotDFPlayerMini myDFPlayer;
 unsigned long cTime = 0;
 unsigned long cTime1 = 0;
 unsigned long t = 0;
+int dataadc;
+float mmhg;
 
 #define DFVolume 20
 
@@ -53,7 +55,7 @@ void loadCell(){
     Serial.println("Timeout, check MCU>HX711 wiring and pin designations");
     while (1);
   } else {
-    LoadCell.setCalFactor(22.41); 
+    LoadCell.setCalFactor(23.41); 
     Serial.println("Startup is complete");
   }
   while (!LoadCell.update());
@@ -169,7 +171,7 @@ void loop() {
 
   Blynk.run(); 
 
-  float tinggiBadan = 192.0 - sonar.ping_cm();  
+  float tinggiBadan = 194.0 - sonar.ping_cm();  
 
   float suhuTubuhC = mlx.readObjectTempC();
   float suhuSekitarC = mlx.readAmbientTempC();
@@ -182,8 +184,8 @@ void loop() {
    suhuSekitarF =  isnan(suhuSekitarF) ? 0 : suhuSekitarF;
 
   int PressureValue = analogRead(PressureSensorPin);
-  float tekanan = (PressureValue / 4095.0) * 5000000;  // Konversi nilai ADC ke tekanan dalam Pascal
-        tekanan = tekanan / 133.322; //konversi nilai pascal ke mmHg
+  mmhg = (PressureValue - 544) / 0.675;
+  mmhg = (mmhg < 0) ? 0 : mmhg;
 
   float weight = loadCellData()/1000;
   float BMI = (weight) / pow(tinggiBadan/100 , 2);
@@ -194,19 +196,20 @@ void loop() {
      Serial.print("suhuSekitarC  :");  Serial.println(suhuSekitarC);
      Serial.print("suhuTubuhF    :");  Serial.println(suhuTubuhF); 
      Serial.print("suhuSekitarF  :");  Serial.println(suhuSekitarF);
-     Serial.print("tekananDarah  :");  Serial.println(tekanan);
+     Serial.print("tekananDarah  :");  Serial.println(mmhg);
      Serial.print("Tinggi Badan  :");  Serial.println(tinggiBadan);
      Serial.print("Berat: "); Serial.print(weight); Serial.println(" gram");
      Serial.print("BMI  : "); Serial.print(BMI); Serial.println("");
 
      Blynk.virtualWrite(V3, suhuTubuhC);
      Blynk.virtualWrite(V4, tinggiBadan);
-     Blynk.virtualWrite(V5, tekanan);
+     Blynk.virtualWrite(V5, mmhg);
      Blynk.virtualWrite(V6, weight);
      Blynk.virtualWrite(V7, BMI);
+     Blynk.virtualWrite(V9, PressureValue);
 
   lcd.setCursor(0,0); lcd.print("Suhu:"); lcd.print(suhuTubuhC); 
-                      lcd.print("C Tensi:"); lcd.print(tekanan); lcd.print("  "); 
+                      lcd.print("C Tensi:"); lcd.print(mmhg); lcd.print("  "); 
   lcd.setCursor(0,1); lcd.print("Tinggi : "); lcd.print(tinggiBadan); 
                       lcd.print("Cm  "); 
   lcd.setCursor(0,2); lcd.print("Berat Badan :  "); lcd.print(weight);
@@ -231,15 +234,6 @@ void loop() {
   }
 }
 
-
-BLYNK_WRITE(V0){
-  int value = param.asInt();  
-  if (value == 1) {
-   digitalWrite(selenoid,HIGH);
-  } else {
-   digitalWrite(selenoid,LOW);
-  }
-}
 
 BLYNK_WRITE(V1){
   int value = param.asInt();  

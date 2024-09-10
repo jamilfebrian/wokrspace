@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relay Control</title>
+</head>
+
+<body>
+    <h1>Kontrol Relay pada Jetson Nano</h1>
+    <form method="post" action="/relay">
+        <button type="submit" name="action" value="on">Hidupkan Relay</button>
+        <button type="submit" name="action" value="off">Matikan Relay</button>
+    </form>
+</body>
+
+</html>
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Temperature</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h1>Real-time Temperature Monitoring</h1>
+    <p>Current Temperature: <span id="temperature">--</span>°C</p>
+
+    <script type="text/javascript">
+        var socket = io();
+
+        socket.on('temperature_update', function (data) {
+            document.getElementById('temperature').innerText = data.temperature;
+        });
+
+        socket.on('connect', function () {
+            console.log('Connected to server');
+        });
+    </script>
+</body>
+
+</html>

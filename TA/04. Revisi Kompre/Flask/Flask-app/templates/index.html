@@ -1,0 +1,208 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <title>Drone Control Web Server</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+
+    <style>
+        html {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #143642;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .topnav {
+            overflow: hidden;
+            background-color: #143642;
+        }
+
+        .content {
+            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .card {
+            background-color: #F8F7F9;
+            ;
+            box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
+            padding-top: 10px;
+            padding-bottom: 20px;
+            border-radius: 20px;
+        }
+
+        .command {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+
+        .command button {
+            display: inline;
+            background-color: #00e1f1;
+            outline: auto;
+            width: 200px;
+            height: 50px;
+            font-size: 20px;
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
+
+        .command button:hover {
+            cursor: pointer;
+            background-color: #0f8b8d;
+        }
+
+        .command button:active {
+            box-shadow: 2 2px #CDCDCD;
+            transform: translateY(2px);
+            background-color: #00b0bd;
+        }
+
+        p.status {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 30px;
+            display: block;
+        }
+
+        p.status #arming {
+            color: rgb(141, 80, 80);
+        }
+
+        .state {
+            font-size: 1.5rem;
+            color: #8c8c8c;
+            font-weight: bold;
+        }
+
+        .sprayer {
+            padding: 15px 50px;
+            font-size: 24px;
+            text-align: center;
+            outline: none;
+            color: #fff;
+            background-color: #0f8b8d;
+            border: none;
+            border-radius: 10px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .sprayer:hover {
+            background-color: #04d1d4;
+            cursor: pointer;
+        }
+
+        .sprayer:active {
+            background-color: #0f8b8d;
+            box-shadow: 2 2px #CDCDCD;
+            transform: translateY(2px);
+        }
+
+        .flight-status {
+            display: grid;
+            margin: auto;
+            margin-top: 20px;
+            background-color: #bcffc1;
+            box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
+            padding-top: 10px;
+            padding-bottom: 20px;
+            grid-template-columns: auto auto;
+            padding: 10px;
+            gap: 10px;
+            font-size: 20px;
+            border-radius: 20px;
+        }
+
+        .flight-status div span {
+            font-size: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topnav">
+        <h1 class="judul">Sistem Kontrol Penyemprotan Cairan Pestisida Otomatis Menggunakan Drone UAV Hexacopter</h1>
+    </div>
+
+    <div class="content">
+        <div class="card">
+            <div class="command">
+                <button type="button" class="connect" id="connect" onclick="toggleButtonText()">CONNECT</button>
+                <button type="button" class="armed" id="armed">Armed</button>
+            </div>
+
+            <p class="status">
+                <strong>Connection : <span id="status-koneksi">DISCONNECTED</span></strong><br>
+                <strong>Status : <span id="arming">DISARMED</span></strong><br>
+                <strong>Mode : <span id="Modes">GUIDED</span></strong><br>
+                <strong>Altitude : <span id="altitude">2</span>m</strong>
+            </p>
+
+            <h2 class="gpio18">Output - GPIO 18</h2>
+            <p class="state">State: <span id="state">%STATE%</span></p>
+            <p><button type="button" id="sprayer" class="sprayer">Spray</button></p>
+        </div>
+        <div class="flight-status">
+            <div>Altitude <br><span id="alt">%ALT%</span>m</div>
+            <div>Ground Speed <br><span id="gs">%GS%</span>m/s</div>
+            <div>Sprayer<br><span id="spray">%SPRAY%</span></div>
+            <div>Yaw<br><span id="yaw">%YAW%</span>deg</div>
+            <div>Temperature<br><span id="temperature">%TEMP%</span>°C</div>
+            <div>Pressure<br><span id="press">%PRESS%</span>hPa</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var socket = io();
+
+        socket.on('temperature_update', function (data) {
+            document.getElementById('temperature').innerText = data.temperature;
+            document.getElementById('press').innerText = 23;//data.pressure;
+
+        });
+
+        socket.on('connect', function () {
+            console.log('Connected to server');
+        });
+
+        function toggleButtonText() {
+            var connect = document.getElementById("connect");
+            var statusKoneksi = document.getElementById("status-koneksi");
+
+            if (connect.innerHTML === "CONNECT") {
+                connect.innerHTML = "DISCONNECT";
+                statusKoneksi.innerHTML = "CONNECTED";
+            } else {
+                connect.innerHTML = "CONNECT";
+                statusKoneksi.innerHTML = "DISCONNECTED";
+            }
+        }
+    </script>
+</body>
+
+</html>
