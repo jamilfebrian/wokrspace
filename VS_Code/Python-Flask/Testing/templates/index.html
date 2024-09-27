@@ -4,19 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Button Example</title>
 </head>
 
 <body>
-    <form action="http://localhost:5000/result" method="POST">
-        <p>Name <input title="asw" type="text" name="Name" /></p>
-        <p>Physics <input title="asw" type="text" name="Physics" /></p>
-        <p>Chemistry <input title="asw" type="text" name="chemistry" /></p>
-        <p>Maths <input title="asw" type="text" name="Maths" /></p>
-        <p><input type="submit" value="submit" /></p>
+    <form method="POST">
+        <button type="submit">{{ button_text }}</button>
     </form>
-
 </body>
-
 
 </html>

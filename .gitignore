@@ -28,3 +28,4 @@ node_modules/
 desktop.ini
 
 myenv/
+dart-sdk/
