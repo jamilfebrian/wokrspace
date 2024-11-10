@@ -1,35 +1,56 @@
 #include <SPI.h>
-#include <MFRC522.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <LiquidCrystal_I2C.h> 
+#include <MFRC522.h>
+#include <CTBot.h>
 
-#define ssid      "Tinkpad"   
-#define password  "12345678" 
-#define url       "http://192.168.130.31/myPhpProject/project_1/db_insert.php"
+#define ssid          "DEBY"   
+#define password      "12345678" 
+#define telegramToken "7952401874:AAELtBFaYbJhSRGUMwgV8yd6xkQKLACwtIA" 
+#define IDTelegram     1259810770
+#define path          "http://192.168.137.1/TA/"
+#define url            path "db_insert.php"
 
 #define RST_PIN    D3     
 #define SS_PIN     D8
 #define RELAY      D4
+#define BUTTON     A0
 
-#define jumlah_kartu   2
-#define USER     "03 E4 E4 26"
+#define jumlah_kartu   3
+
 #define MAMIKOS  "C3 83 70 14"
+#define USER1    "63 9B 24 28"
+#define USER2    "03 2F 69 14"
 
-const String no_ruang = "2";
-String IDCard[jumlah_kartu] = {USER, MAMIKOS};
+#define USER1NAME "DEBY AULIA RAMADINI"
+#define NIK       "1206074811020002"
+
+const String no_ruang = "1";
+String IDCard[jumlah_kartu] = {MAMIKOS, USER1, USER2};
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
+LiquidCrystal_I2C lcd(0x27,16,2); 
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); 
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 25200, 60000);
 
-String date[7] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum\\'at", "Sabtu"};
+CTBot myBot;
+TBMessage msg; 
 
-bool kunci = false;
-String hari;
+unsigned long cTime = 0;
+unsigned long bTime = 0;
+
+bool pesanTerkirim = false;  
+
+bool logic1 = false;
+bool logic2 = false;
+bool logic3 = false;
 
 void connectWifi(){
+  lcd.setCursor(0,0); lcd.print("Menghubungkan Ke");
+  lcd.setCursor(0,1); lcd.print(" Wifi : "+ String(ssid));
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("Menghubungkan Wifi");
@@ -38,12 +59,27 @@ void connectWifi(){
     } Serial.println("Wifi Terhubung");
 }
 
-void sendDataBase(String nama, String UID, String Status){
-  timeClient.update();
-  int dayOfWeek = timeClient.getDay();
-  String hari = date[dayOfWeek];
-  
-  String postData = "nama=" + nama + "&UID=" + UID + "&ruang=" + no_ruang + "&status=" + Status + "&hari=" + hari;
+void loginTelegram(){
+       lcd.setCursor(0,0); lcd.print("Menghubungkan Ke");
+       lcd.setCursor(0,1); lcd.print(" Bot Telegram   ");
+    Serial.println("login in telegram...");
+    while (!myBot.testConnection()){
+        myBot.setTelegramToken(telegramToken);
+        delay(1000);}
+  if(myBot.testConnection()){
+    lcd.setCursor(0,0); lcd.print("Koneksi Telegram");
+    lcd.setCursor(0,1); lcd.print("   Terhubung    ");
+       Serial.print("Telegram connection OK!"); 
+       Serial.print("Waktu Koneksi Telegram : ");  
+       delay(100);
+  } else {
+       Serial.println("Connection Not OK");
+  }
+}
+
+
+void sendDataBase(String UID, String aksi){
+  String postData = "UID=" + UID + "&ruang=" + no_ruang + "&aksi=" + aksi;
 
   WiFiClient client;
   HTTPClient http;
@@ -52,6 +88,19 @@ void sendDataBase(String nama, String UID, String Status){
   int httpCode = http.POST(postData);
   String payload = http.getString();
   Serial.println(httpCode);  Serial.println(payload);
+}
+
+String getDateBase(String UID){
+  String postData = "UID=" + UID + "&ruang=" + no_ruang;
+  String URL = String(path)+"getDate.php";
+
+  WiFiClient client;
+  HTTPClient http;
+  http.begin(client, URL);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpCode = http.POST(postData);
+  String payload = http.getString(); 
+  return payload;
 }
 
 void readRFID(){
@@ -68,40 +117,140 @@ void readRFID(){
      content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
      content.concat(String(mfrc522.uid.uidByte[i], HEX));
   }  content.toUpperCase(); //Serial.println(content);
-    for(byte i=0; i<jumlah_kartu; i++){
-      if(content.substring(1) == IDCard[i]){
-         String nama = (content.substring(1) == IDCard[0]) ? "Joni Simatupang" : "IBUK KOS";
-         digitalWrite(RELAY, LOW); 
-         sendDataBase(nama, content, "Masuk");
-         delay(1000);
-         return;
-      } else {
-         continue;
-      }
-    }   
+  
+  String UID = content.substring(1);
+  for(byte i=0; i<jumlah_kartu; i++){
+    if(UID == IDCard[i]){
+       cTime = millis();
+       displayLCD(3);
+       digitalWrite(RELAY, LOW); 
+       myBot.sendMessage(IDTelegram, String(USER1NAME)+" Dengan NIK "+ NIK +" Membuka Pintu Ruangan " + no_ruang);
+       sendDataBase(UID, "Masuk"); 
+       cTime = millis();
+       delay(1000);
+       return;
+    } else {
+       continue;
+    }
+  }   
 
     digitalWrite(RELAY, HIGH); Serial.println("UID Tidak Terdaftar");
-    kunci = false;
+    cTime = millis();  displayLCD(2);
+    sendDataBase(UID, "Masuk"); delay(1000);
+}
+
+void displayLCD(int index){
+  if(millis() - cTime < 5000){
+    switch(index){
+      case 1:
+        lcd.setCursor(0,0); lcd.print("  Silahkan Tap  ");
+        lcd.setCursor(0,1); lcd.print("   Kartu Anda   ");
+        logic1 = true;
+        break;
+      case 2:
+        lcd.setCursor(0,0); lcd.print(" ID Anda Tidak  ");
+        lcd.setCursor(0,1); lcd.print("     Cocok      ");
+        myBot.sendMessage(IDTelegram, "Pengguna Tidak Terdaftar Berusaha Membuka Pintu Ruangan " + no_ruang);
+        logic1 = true;
+        break;
+      case 3:
+        lcd.setCursor(0,0); lcd.print("    Silahkan    ");
+        lcd.setCursor(0,1); lcd.print("     Masuk      ");
+        logic1 = true;
+        break;
+    }
+  } else {
+    if(logic1){
+    lcd.init(); lcd.backlight(); lcd.clear();
+    lcd.setCursor(0,0); lcd.print("  Silahkan Tap  ");
+    lcd.setCursor(0,1); lcd.print("   Kartu Anda   ");
+      digitalWrite(RELAY, HIGH);
+      logic1 = false;
+    }
+    
+  }
+}
+
+void button(){
+  int value = analogRead(BUTTON);
+  if(value >= 40){
+    bTime = millis();
+  }
+  
+  if(millis() - bTime < 3000){
+    lcd.setCursor(0,0); lcd.print("   Pntu Telah   ");
+    lcd.setCursor(0,1); lcd.print("     dibuka     ");
+    digitalWrite(RELAY, LOW); 
+    logic2 = true;
+    if(logic3){
+      sendDataBase(USER1, "Keluar"); 
+      logic3 = false;
+    }
+  } else {
+    if(logic2){
+      lcd.init(); lcd.backlight(); lcd.clear();
+      lcd.setCursor(0,0); lcd.print("  Silahkan Tap  ");
+      lcd.setCursor(0,1); lcd.print("   Kartu Anda   ");
+      digitalWrite(RELAY, HIGH);
+      logic2 = false; logic3 = true;
+    }
+  }
 }
 
 void setup() {
   Serial.begin(115200);
   while (!Serial); 
+  
   SPI.begin();  mfrc522.PCD_Init(); 
-  delay(4); 
+  delay(4); logic3 = true;
   mfrc522.PCD_DumpVersionToSerial(); 
 
+  lcd.init(); lcd.backlight(); lcd.clear();
+
+  pinMode(BUTTON,INPUT);
   pinMode(RELAY, OUTPUT);
   digitalWrite(RELAY, HIGH);
 
   connectWifi();
-   timeClient.begin();
+  loginTelegram();
+  
+  lcd.setCursor(0,0); lcd.print("  Silahkan Tap  ");
+  lcd.setCursor(0,1); lcd.print("   Kartu Anda   ");
+
+  timeClient.begin();
 }
 
 void loop() {
   if(WiFi.status() != WL_CONNECTED) {
      connectWifi();
   }
+
+  timeClient.update();
+  
+//  String formattedTime = timeClient.getFormattedTime();
+//  Serial.println("Waktu saat ini: " + formattedTime);
+  
+  int jam = timeClient.getHours();
+  int menit = timeClient.getMinutes();
+  int detik = timeClient.getSeconds();
+
+  String statusSewa = getDateBase(USER1);
+
+  if (jam == 8 && menit >= 0 && detik >= 0 && !pesanTerkirim) {  //Atur jam pengingat waktu sewa berakhir
+    if(statusSewa == "1"){
+      myBot.sendMessage(IDTelegram, "Waktu Sewa " + String(USER1NAME) + "\nPada Ruangan " + String(no_ruang)+" Berakhir 1 Hari Lagi");
+      pesanTerkirim = true;  
+    } else if(statusSewa == "0"){
+      myBot.sendMessage(IDTelegram, "Waktu Sewa " + String(USER1NAME) + "\nPada Ruangan " + String(no_ruang)+" Telah Berakhir");
+      pesanTerkirim = true;  
+    }
+  }
+
+  if (jam == 0 && menit == 0 && detik == 0) {
+    pesanTerkirim = false;
+  }
   
    readRFID();
+   displayLCD(5);
+   button();
 }

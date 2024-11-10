@@ -14,6 +14,7 @@ const int stepper[4] = {31, 29, 27, 25};
 #define stepperSpeed 40
 #define stepperStep 42
 
+int PM = 0;
 
 void buzzer(int x=2, int timer=100){
   for(int i=0; i<x; i++){
@@ -42,7 +43,7 @@ void setup() {
     pinMode(stepper[i], OUTPUT);
   }
 
-  DFPlayerConnect(); myDFPlayer.play(12);
+  DFPlayerConnect(); myDFPlayer.play(24);
   lcd.setCursor(0,0); lcd.print("   IYUT SEPMI   ");
   lcd.setCursor(0,1); lcd.print("     GUSTIA     ");
 }
@@ -54,8 +55,16 @@ void loop() {
       if(!digitalRead(adjustPin)){
          break;
       }
-      myDFPlayer.play(i+1);
-      Serial.println(i+1);
+      if(PM < 12){
+         myDFPlayer.play(i+1);
+         PM++;
+      } else if(PM >= 12){
+         myDFPlayer.play(i+13);
+         PM++; 
+         if(PM == 24){
+          PM = 0;
+         }
+      }
   }
   for(int i=0; i<12; i++){
      digitalWrite(LED[i], LOW);

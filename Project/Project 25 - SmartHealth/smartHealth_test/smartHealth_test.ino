@@ -1,6 +1,8 @@
 #define BLYNK_TEMPLATE_ID "TMPL61IxapWdA"
 #define BLYNK_TEMPLATE_NAME "Project Testing"
 #define BLYNK_AUTH_TOKEN "ICfMQqpE867-F7YvRUOehw5CPgQO8pGz"
+#define Web_App_URL "https://script.google.com/macros/s/AKfycbyuAy8QFRNACNyBHZ7tnfkPQfobccYdL1I0pL7yrJNIHIHdBgjP18baDOEHlBiRdZ8zCA/exec?"  
+//  sts=writeSensor&srs=SUCCES&HR=10&T=20&H=30&W=50&P=100
 
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
@@ -10,6 +12,7 @@
 #include "DFRobotDFPlayerMini.h"
 #include "WiFi.h"
 #include <BlynkSimpleEsp32.h>
+#include <HTTPClient.h>
 
 #include <HX711_ADC.h>
 #include <EEPROM.h>
@@ -44,6 +47,30 @@ int dataadc;
 float mmhg;
 
 #define DFVolume 20
+const String Status_Read_Sensor = "SUCCESS";
+
+void sendDataToSpreadsheet(float T, int H, float W, int P){
+    String Send_Data_URL = Web_App_URL "sts=writeSensor";
+    
+    Send_Data_URL += "&srs=" + Status_Read_Sensor;
+//    Send_Data_URL += "&HR=" + String(HR);
+    Send_Data_URL += "&T=" + String(T);
+    Send_Data_URL += "&H=" + String(H);
+    Send_Data_URL += "&W=" + String(W);
+    Send_Data_URL += "&P=" + String(P);
+
+      HTTPClient http;
+      http.begin(Send_Data_URL.c_str());
+      http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+
+      int httpCode = http.GET(); 
+      
+      String payload;
+      if (httpCode > 0) {
+        payload = http.getString();
+      }
+      http.end();
+}
 
 void loadCell(){
   Serial.println();
@@ -208,6 +235,7 @@ void loop() {
      Blynk.virtualWrite(V7, BMI);
      Blynk.virtualWrite(V9, PressureValue);
 
+
   lcd.setCursor(0,0); lcd.print("Suhu:"); lcd.print(suhuTubuhC); 
                       lcd.print("C Tensi:"); lcd.print(mmhg); lcd.print("  "); 
   lcd.setCursor(0,1); lcd.print("Tinggi : "); lcd.print(tinggiBadan); 
@@ -220,14 +248,19 @@ void loop() {
     if (millis() - cTime1 > 3000){
        if(BMI >= 5.0 && BMI < 16){
           myDFPlayer.play(1); cTime1 = millis();
+          sendDataToSpreadsheet(suhuTubuhC, tinggiBadan, weight, mmhg);
        } else if(BMI >= 16 && BMI < 18){
           myDFPlayer.play(2); cTime1 = millis();
+          sendDataToSpreadsheet(suhuTubuhC, tinggiBadan, weight, mmhg);
        } else if(BMI >= 18 && BMI < 25){
           myDFPlayer.play(3); cTime1 = millis();
+          sendDataToSpreadsheet(suhuTubuhC, tinggiBadan, weight, mmhg);
        } else if(BMI >= 25 && BMI < 27){
           myDFPlayer.play(4); cTime1 = millis();
+          sendDataToSpreadsheet(suhuTubuhC, tinggiBadan, weight, mmhg);
        } else if(BMI >= 27){
           myDFPlayer.play(5); cTime1 = millis();
+          sendDataToSpreadsheet(suhuTubuhC, tinggiBadan, weight, mmhg);
        }
     }
      Serial.println(""); cTime = millis();  
