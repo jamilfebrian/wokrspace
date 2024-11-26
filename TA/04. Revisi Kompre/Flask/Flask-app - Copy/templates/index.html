@@ -41,11 +41,12 @@
             max-width: 600px;
             margin: 0 auto;
             display: block;
+            justify-content: center;
+            align-items: center;
         }
 
         .card {
             background-color: #F8F7F9;
-            ;
             box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
             padding-top: 10px;
             padding-bottom: 20px;
@@ -58,14 +59,13 @@
             justify-content: center;
             margin-bottom: 10px;
             margin-top: 20px;
-            background-color: #0f8b8d;
         }
 
 
         .connect button {
             background-color: #00e1f1;
             outline: auto;
-            width: 150px;
+            width: 120px;
             height: 50px;
             font-size: 20px;
             font-family: "Lucida Console", "Courier New", monospace;
@@ -141,7 +141,6 @@
             margin: auto;
             margin-top: 20px;
             background-color: #bcffc1;
-            ;
             box-shadow: 2px 2px 12px 1px rgba(172, 159, 159, 0.5);
             padding-top: 10px;
             padding-bottom: 20px;
@@ -158,6 +157,85 @@
 
         p.status {
             font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* tombol */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .middle-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* form untuk jarak semprot */
+        .form-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+            justify-content: center;
+            align-items: center;
+            margin-left: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-container h1 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-container input[type="number"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-container button {
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -183,8 +261,26 @@
             <p class=status>
                 Mode : <strong><span id="Modes">GUIDED</span></strong><br>
                 Status: <strong><span id="status"> {{ koneksi }}</span></strong><br>
-                Altitude : <strong><span id="altitude"> </span>m</strong>
+                Altitude : <strong><span id="altitude">0</span>m</strong>
             </p>
+
+            <div class="form-container">
+                <form action="/kirim" method="POST">
+                    <div class="form-row">
+                        <input type="number" name="jarak" placeholder="Masukkan jarak (meter)" required>
+                        <button type="submit" name="kirim" value="on">Kirim</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="container">
+                <button class="btn" id="up">↑</button>
+                <div class="middle-row">
+                    <button class="btn" id="left">←</button>
+                    <button class="btn" id="right">→</button>
+                </div>
+                <button class="btn" id="down">↓</button>
+            </div>
 
             <h2 class="gpio2">Output - GPIO 18</h2>
             <p class="state">State: <span id="state">{{ status }}</span></p>
@@ -195,11 +291,12 @@
         <div class="flight-status">
             <div>Altitude <br><span id="alt">??</span>m</div>
             <div>Ground Speed <br><span id="gs">??</span>m/s</div>
-            <div>Sprayer<br><span id="spray">{{ status }}</span></div>
+            <div>Sprayer<br><span id="spray">{{status}}</span></div>
             <div>Yaw<br><span id="yaw"> ?? </span>deg</div>
             <div>Temperature<br><span id="temperature">__</span>°C</div>
-            <div>Pressure<br><span id="press">%PRESS%</span>hPa</div>
+            <div>Pressure<br><span id="press">??</span>hPa</div>
         </div>
+
     </div>
 
     <script type="text/javascript">
@@ -212,7 +309,6 @@
             document.getElementById('alt').innerText = data.altitude;
             document.getElementById('altitude').innerText = data.altitude;
             document.getElementById('gs').innerText = data.groundSpeed;
-
         });
 
         socket.on('connect', function () {
