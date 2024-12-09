@@ -66,13 +66,13 @@ void loop() {
   Serial.println(rangeSamping);
 
 
-  if(rangeDepan <= 500){
+  if(rangeDepan <= 1000){
     digitalWrite(led,HIGH);
     if(millis() - currTime >= 2500){
       digitalWrite(buzzer, HIGH);
       currTime = millis();
     }
-  } else if (rangeSamping <= 500){
+  } else if (rangeSamping <= 1000){
     digitalWrite(led,HIGH);
     if(millis() - currTime >= 2500){
       digitalWrite(buzzer, HIGH);
