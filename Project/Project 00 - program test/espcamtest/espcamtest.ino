@@ -1,27 +1,17 @@
 #include "esp_camera.h"
 #include <WiFi.h>
 
+//  Tambahkan definisi model kamera
+#define CAMERA_MODEL_AI_THINKER 
+
+#include "camera_pins.h"
+
 // Konfigurasi Wi-Fi
-const char* ssid = "Your_SSID";         // Ganti dengan nama Wi-Fi Anda
-const char* password = "Your_PASSWORD"; // Ganti dengan password Wi-Fi Anda
+#define ssid  "Tinkpad"         // Ganti dengan nama Wi-Fi Anda
+#define password  "12345678" // Ganti dengan password Wi-Fi Anda
 
 #define LED_GPIO 4 // Pin untuk mengontrol LED
-#define PWDN_GPIO_NUM -1
-#define RESET_GPIO_NUM -1
-#define XCLK_GPIO_NUM 0
-#define SIOD_GPIO_NUM 26
-#define SIOC_GPIO_NUM 27
-#define Y9_GPIO_NUM 35
-#define Y8_GPIO_NUM 34
-#define Y7_GPIO_NUM 39
-#define Y6_GPIO_NUM 36
-#define Y5_GPIO_NUM 21
-#define Y4_GPIO_NUM 19
-#define Y3_GPIO_NUM 18
-#define Y2_GPIO_NUM 5
-#define VSYNC_GPIO_NUM 25
-#define HREF_GPIO_NUM 23
-#define PCLK_GPIO_NUM 22
+
 
 void startCameraServer();
 
@@ -91,7 +81,7 @@ void loop() {
     return;
   }
 
-  // Deteksi wajah
+  // Deteksi wajah (pastikan library dan fungsi sudah benar)
   if (fb->format == PIXFORMAT_JPEG) {
     dl_matrix3du_t* image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
     if (image_matrix) {
@@ -106,4 +96,34 @@ void loop() {
     }
   }
   esp_camera_fb_return(fb);
+}
+
+
+void startCameraServer() {
+  WiFiServer server(80);
+  server.begin();
+  Serial.println("Server dimulai.");
+
+  while (true) {
+    WiFiClient client = server.available();
+    if (client) {
+      Serial.println("Klien terhubung.");
+      String request = client.readStringUntil('\r');
+      Serial.println(request);
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: image/jpeg");
+      client.println("Connection: close");
+      client.println();
+
+      camera_fb_t* fb = esp_camera_fb_get();
+      if (!fb) {
+        Serial.println("Gagal mengambil frame!");
+        continue;
+      }
+      client.write(fb->buf, fb->len);
+      esp_camera_fb_return(fb);
+      client.stop();
+      Serial.println("Klien terputus.");
+    }
+  }
 }

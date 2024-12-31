@@ -1,0 +1,78 @@
+
+* {
+    box-sizing: border-box;
+}
+
+.conveyor-container,
+.conveyor-container-reverse {
+    width: 100%;
+    overflow: hidden; /* Menyembunyikan gambar yang keluar dari wadah */
+    padding: 20px 0;
+    white-space: nowrap;
+    background:white;
+    position: relative;
+}
+
+.conveyor-container::before,
+.conveyor-container::after,
+.conveyor-container-reverse::before,
+.conveyor-container-reverse::after{
+    position: absolute;
+    top: 0;
+    width: 200px;
+    height: 100%;
+    content: "";
+    z-index: 2;
+}
+
+.conveyor-container::before,
+.conveyor-container-reverse::before{
+    left: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0), white)
+}
+.conveyor-container::after,
+.conveyor-container-reverse::after{
+    right: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0), white)
+}
+
+.conveyor-container:hover .conveyor1,
+.conveyor-container:hover .conveyor2, 
+.conveyor-container-reverse:hover .conveyor1,
+.conveyor-container-reverse:hover .conveyor2{
+    animation-play-state: paused;
+}
+
+.conveyor-container .conveyor1, .conveyor-container .conveyor2 {
+    display: inline-block;
+    animation: scroll-left 20s linear infinite;
+}
+
+.conveyor-container-reverse .conveyor1, .conveyor-container-reverse .conveyor2 {
+    display: inline-block;
+    animation: scroll-right 20s linear infinite;
+}
+
+.conveyor1 img, .conveyor2 img {
+    height: 80px; /* Ukuran gambar */
+    margin: 0 20px; /* Spasi antar gambar */
+}
+
+/* Keyframes untuk animasi konveyor */
+@keyframes scroll-left {
+    0% {
+    transform: translateX(0);
+    }
+    100% {
+    transform: translateX(-100%);
+    }
+}
+
+@keyframes scroll-right {
+    0% {
+    transform: translateX(-100%);
+    }
+    100% {
+    transform: translateX(0);
+    }
+}
