@@ -1,5 +1,7 @@
+
+
 void main(){
-  print("hello world");
+  int? lineCount;
+  assert(lineCount == null);
 }
 
-var gh = "hai";
