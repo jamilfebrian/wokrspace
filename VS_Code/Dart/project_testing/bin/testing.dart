@@ -1,7 +1,7 @@
-
-
-void main(){
-  int? lineCount;
-  assert(lineCount == null);
+enum Custom {
+  a, b, c
 }
 
+void main() {
+  
+}
