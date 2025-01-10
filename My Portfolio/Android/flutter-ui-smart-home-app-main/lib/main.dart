@@ -1,12 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/temperature.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_smart_home/temperature.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +25,13 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  HomePageState createState() => HomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
