@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           hintColor: Colors.amber,
           fontFamily: 'Lato',
         ),
-        home: const ProductsOverviewScreen(),
+        home: ProductsOverviewScreen(),
         routes: {
           ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
         },
