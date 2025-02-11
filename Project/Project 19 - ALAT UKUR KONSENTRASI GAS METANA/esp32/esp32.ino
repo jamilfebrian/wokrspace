@@ -2,6 +2,7 @@
 #define BLYNK_TEMPLATE_NAME "Biodiagaster metana meter control"
 #define BLYNK_AUTH_TOKEN "ufq-ukh8suzjr-a9XgfK-urLNl34Lc2I"
 
+#include <math.h> 
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
 #include <LiquidCrystal_I2C.h>
@@ -40,6 +41,8 @@ float CH4_RS;
 float CH4_ratio;
 float CH4_PPM;
 float CH4_PPM_Percent;
+
+float x, y;
 
 long mappedValue;
 int Sludge_range;
@@ -97,6 +100,17 @@ void loop() {
      CH4_PPM_Percent = CH4_PPM / 10000;
   
      mappedValue = map(CH4_ratio, 1, 2, 1000, 200);
+
+     x = CH4_value;
+     y = (0.8932 * exp(0.0118 * x));
+
+     if(y >= 9999){
+      y = 9999;
+     } else if(y <= 0){
+      y = 0;
+     }
+
+     Serial.println(y);
     
     Sludge_range = lox.readRange()/10;
     Sludge_range = (Sludge_range >= 100) ? 100 : Sludge_range;
@@ -112,7 +126,7 @@ void loop() {
 
   lcd.setCursor(0, 0);
   lcd.print("R:"); lcd.print(CH4_ratio); 
-  lcd.print(" PPM:");lcd.print(CH4_PPM); lcd.print("  ");
+  lcd.print(" PPM:");lcd.print(y); lcd.print("     ");
   lcd.setCursor(0, 1);
   lcd.print("Slg:"); lcd.print(Sludge_range); lcd.print("  ");
   
