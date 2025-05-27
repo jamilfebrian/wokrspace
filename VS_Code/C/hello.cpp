@@ -1,32 +1,29 @@
 #include <iostream>
-#include <string>
-
 using namespace std;
 
-class Mahasiswa{
-    public:
-        string NAMA;
-        string NIM;
-        string PRODY;
+int bil1, bil2;
 
-
-        Mahasiswa(string inputNama, string inputNIM, string inputPrody){
-            Mahasiswa::NAMA = inputNama;
-            Mahasiswa::NIM = inputNIM;
-            Mahasiswa::PRODY = inputPrody;
-
-
-        cout << Mahasiswa::NAMA << endl;
-        cout << Mahasiswa::NIM << endl;
-        cout << Mahasiswa::PRODY << endl;
-
-
-        }
-};
-
-int main(int argc, char const *argv[])
+int main()
 {
-    
+    cout << "Masukkan Bilangan Pertama : ";
+    cin >> bil1;
+    cout << "Masukkan Bilangan Kedua : ";
+    cin >> bil2;
+
+    if (bil1 < bil2)
+    {
+        cout << "Angka " << bil1 << " lebih kecil dari Angka " << bil2 << endl;
+    }
+    else if (bil1 > bil2)
+    {
+        cout << "Angka " << bil1 << " lebih besar dari Angka " << bil2 << endl;
+    }
+    else if (bil1 == bil2)
+    {
+        cout << "Angka " << bil1 << " sama dengan Angka " << bil2 << endl;
+    }
+
+    cout << "Akhir dari Program";
+
     return 0;
 }
-
