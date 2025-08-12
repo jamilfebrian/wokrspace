@@ -1,0 +1,17 @@
+01. kode benar, silahkan masukkan kode baru
+02. verifikasi kode anda
+03. kode berhasil diperbarui
+04. kode menimal 4 digit
+05. kode benar, kunci terbuka
+06. kode salah silahkan coba lagi
+07. Silahkan tap kartu anda
+08. ID kartu berhasil ditambahkan
+09. ID kartu berhasil dihapus
+10. ID benar, kunci berhasil dibuka
+11. ID kartu tidak terdaftar
+12. Masukkan Kode terlebih dahulu
+13. ID sudah pernah terdaftar
+14. ID kartu melebihi batas maksimal
+15. kode benar silahkan tap kartu anda
+16. kode maksimal 8 digit angka
+17. terjadi pencurian

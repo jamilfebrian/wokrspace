@@ -1,34 +1,42 @@
-
-#include "WiFi.h"
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 #include "esp_camera.h"
-#include "esp_timer.h"
-#include "img_converters.h"
-#include "Arduino.h"
-#include "soc/soc.h"           // Disable brownour problems
-#include "soc/rtc_cntl_reg.h"  // Disable brownour problems
-#include "driver/rtc_io.h"
-#include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>
-#include <FS.h>
+#include <UniversalTelegramBot.h>
+#include <ArduinoJson.h>
+#include <esp_now.h>
 
-// Replace with your network credentials
 const char* ssid = "Tinkpad";
 const char* password = "12345678";
 
-// Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
+String BOTtoken = "5346287582:AAFyl0CBY_hr5PJDFeCJMg9X0LwKOV-RP2s";  
+String CHAT_ID = "1599903092";
 
-boolean takeNewPhoto = false;
+static bool sendPhoto = false;
 
-// Photo File Name to save in SPIFFS
-#define FILE_PHOTO "/photo.jpg"
+WiFiClientSecure clientTCP;
+UniversalTelegramBot bot(BOTtoken, clientTCP);
 
-// OV2640 camera module pins (CAMERA_MODEL_AI_THINKER)
+#define FLASH_LED_PIN 4
+bool flashState = LOW;
+
+int botRequestDelay = 1000;
+unsigned long lastTimeBotRan;
+
+typedef struct struct_message {
+    bool a;
+} struct_message;
+struct_message myData;
+
+//CAMERA_MODEL_AI_THINKER
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
 #define XCLK_GPIO_NUM      0
 #define SIOD_GPIO_NUM     26
 #define SIOC_GPIO_NUM     27
+
 #define Y9_GPIO_NUM       35
 #define Y8_GPIO_NUM       34
 #define Y7_GPIO_NUM       39
@@ -41,73 +49,8 @@ boolean takeNewPhoto = false;
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { text-align:center; }
-    .vert { margin-bottom: 10%; }
-    .hori{ margin-bottom: 0%; }
-  </style>
-</head>
-<body>
-  <div id="container">
-    <h2>ESP32-CAM Last Photo</h2>
-    <p>It might take more than 5 seconds to capture a photo.</p>
-    <p>
-      <button onclick="rotatePhoto();">ROTATE</button>
-      <button onclick="capturePhoto()">CAPTURE PHOTO</button>
-      <button onclick="location.reload();">REFRESH PAGE</button>
-    </p>
-  </div>
-  <div><img src="saved-photo" id="photo" width="70%"></div>
-</body>
-<script>
-  var deg = 0;
-  function capturePhoto() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', "/capture", true);
-    xhr.send();
-  }
-  function rotatePhoto() {
-    var img = document.getElementById("photo");
-    deg += 90;
-    if(isOdd(deg/90)){ document.getElementById("container").className = "vert"; }
-    else{ document.getElementById("container").className = "hori"; }
-    img.style.transform = "rotate(" + deg + "deg)";
-  }
-  function isOdd(n) { return Math.abs(n % 2) == 1; }
-</script>
-</html>)rawliteral";
 
-void setup() {
-  // Serial port for debugging purposes
-  Serial.begin(115200);
-
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi...");
-  }
-  if (!SPIFFS.begin(true)) {
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    ESP.restart();
-  }
-  else {
-    delay(500);
-    Serial.println("SPIFFS mounted successfully");
-  }
-
-  // Print ESP32 Local IP Address
-  Serial.print("IP Address: http://");
-  Serial.println(WiFi.localIP());
-
-  // Turn-off the 'brownout detector'
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
-
-  // OV2640 camera module
+void configInitCamera(){
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -129,93 +72,207 @@ void setup() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
+  config.grab_mode = CAMERA_GRAB_LATEST;
 
-  if (psramFound()) {
+  //init with high specs to pre-allocate larger buffers
+  if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA;
-    config.jpeg_quality = 10;
-    config.fb_count = 2;
+    config.jpeg_quality = 10;  //0-63 lower number means higher quality
+    config.fb_count = 1;
   } else {
     config.frame_size = FRAMESIZE_SVGA;
-    config.jpeg_quality = 12;
+    config.jpeg_quality = 12;  //0-63 lower number means higher quality
     config.fb_count = 1;
   }
-  // Camera init
+  
+  // camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
+    delay(1000);
     ESP.restart();
   }
+}
 
-  // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
-    request->send(200, "text/html", index_html);
-  });
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&myData, incomingData, sizeof(myData));
+  Serial.print("Bool: ");
+  Serial.println(myData.d);
+  Serial.println();
+  if(myData.d){
+    sendPhoto = true;
+  }
+}
 
-  server.on("/capture", HTTP_GET, [](AsyncWebServerRequest * request) {
-    takeNewPhoto = true;
-    request->send(200, "text/plain", "Taking Photo");
-  });
+void handleNewMessages(int numNewMessages) {
+  Serial.print("Handle New Messages: ");
+  Serial.println(numNewMessages);
 
-  server.on("/saved-photo", HTTP_GET, [](AsyncWebServerRequest * request) {
-    request->send(SPIFFS, FILE_PHOTO, "image/jpg", false);
-  });
+  for (int i = 0; i < numNewMessages; i++) {
+    String chat_id = String(bot.messages[i].chat_id);
+    if (chat_id != CHAT_ID){
+      bot.sendMessage(chat_id, "Unauthorized user", "");
+      continue;
+    }
+    
+    // Print the received message
+    String text = bot.messages[i].text;
+    Serial.println(text);
+    
+    String from_name = bot.messages[i].from_name;
+    if (text == "/start") {
+      String welcome = "Selamat Datang , " + from_name + "\n";
+      welcome += "Silahkan gunakan perintah berikut untuk menggunakan ESP32-CAM \n";
+      welcome += "/photo : takes a new photo\n";
+      welcome += "/flash : toggles flash LED \n";
+      bot.sendMessage(CHAT_ID, welcome, "");
+    }
+    if (text == "/flash") {
+      flashState = !flashState;
+      digitalWrite(FLASH_LED_PIN, flashState);
+      Serial.println("Change flash LED state");
+    }
+    if (text == "/photo") {
+      sendPhoto = true;
+      Serial.println("New photo request");
+    }
+  }
+}
 
-  // Start server
-  server.begin();
+String sendPhotoTelegram() {
+  const char* myDomain = "api.telegram.org";
+  String getAll = "";
+  String getBody = "";
 
+  //Dispose first picture because of bad quality
+  camera_fb_t * fb = NULL;
+  fb = esp_camera_fb_get();
+  esp_camera_fb_return(fb); // dispose the buffered image
+  
+  // Take a new photo
+  fb = NULL;  
+  fb = esp_camera_fb_get();  
+  if(!fb) {
+    Serial.println("Camera capture failed");
+    delay(1000);
+    ESP.restart();
+    return "Camera capture failed";
+  }
+  
+  Serial.println("Connect to " + String(myDomain));
+
+
+  if (clientTCP.connect(myDomain, 443)) {
+    Serial.println("Connection successful");
+    
+    String head = "--RandomNerdTutorials\r\nContent-Disposition: form-data; name=\"chat_id\"; \r\n\r\n" + CHAT_ID + "\r\n--RandomNerdTutorials\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"esp32-cam.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
+    String tail = "\r\n--RandomNerdTutorials--\r\n";
+
+    size_t imageLen = fb->len;
+    size_t extraLen = head.length() + tail.length();
+    size_t totalLen = imageLen + extraLen;
+  
+    clientTCP.println("POST /bot"+BOTtoken+"/sendPhoto HTTP/1.1");
+    clientTCP.println("Host: " + String(myDomain));
+    clientTCP.println("Content-Length: " + String(totalLen));
+    clientTCP.println("Content-Type: multipart/form-data; boundary=RandomNerdTutorials");
+    clientTCP.println();
+    clientTCP.print(head);
+  
+    uint8_t *fbBuf = fb->buf;
+    size_t fbLen = fb->len;
+    for (size_t n=0;n<fbLen;n=n+1024) {
+      if (n+1024<fbLen) {
+        clientTCP.write(fbBuf, 1024);
+        fbBuf += 1024;
+      }
+      else if (fbLen%1024>0) {
+        size_t remainder = fbLen%1024;
+        clientTCP.write(fbBuf, remainder);
+      }
+    }  
+    
+    clientTCP.print(tail);
+    
+    esp_camera_fb_return(fb);
+    
+    int waitTime = 10000;   // timeout 10 seconds
+    long startTimer = millis();
+    boolean state = false;
+    
+    while ((startTimer + waitTime) > millis()){
+      Serial.print(".");
+      delay(100);      
+      while (clientTCP.available()) {
+        char c = clientTCP.read();
+        if (state==true) getBody += String(c);        
+        if (c == '\n') {
+          if (getAll.length()==0) state=true; 
+          getAll = "";
+        } 
+        else if (c != '\r')
+          getAll += String(c);
+        startTimer = millis();
+      }
+      if (getBody.length()>0) break;
+    }
+    clientTCP.stop();
+    Serial.println(getBody);
+  }
+  else {
+    getBody="Connected to api.telegram.org failed.";
+    Serial.println("Connected to api.telegram.org failed.");
+  }
+  return getBody;
+}
+
+void setup(){
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); 
+  // Init Serial Monitor
+  Serial.begin(115200);
+
+  // Set LED Flash as output
+  pinMode(FLASH_LED_PIN, OUTPUT);
+  digitalWrite(FLASH_LED_PIN, flashState);
+
+  // Config and init the camera
+  configInitCamera();
+
+  // Connect to Wi-Fi
+  WiFi.mode(WIFI_STA);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  clientTCP.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println();
+  Serial.print("ESP32-CAM IP Address: ");
+  Serial.println(WiFi.localIP()); 
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
 }
 
 void loop() {
-  if (takeNewPhoto) {
-    capturePhotoSaveSpiffs();
-    takeNewPhoto = false;
+  
+  if (sendPhoto) {
+    Serial.println("Preparing photo");
+    sendPhotoTelegram(); 
+    sendPhoto = false; 
+    myData.d = false;
   }
-  delay(1);
-}
-
-// Check if photo capture was successful
-bool checkPhoto( fs::FS &fs ) {
-  File f_pic = fs.open( FILE_PHOTO );
-  unsigned int pic_sz = f_pic.size();
-  return ( pic_sz > 100 );
-}
-
-// Capture Photo and Save it to SPIFFS
-void capturePhotoSaveSpiffs( void ) {
-  camera_fb_t * fb = NULL; // pointer
-  bool ok = 0; // Boolean indicating if the picture has been taken correctly
-
-  do {
-    // Take a photo with the camera
-    Serial.println("Taking a photo...");
-
-    fb = esp_camera_fb_get();
-    if (!fb) {
-      Serial.println("Camera capture failed");
-      return;
+  if (millis() > lastTimeBotRan + botRequestDelay)  {
+    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    while (numNewMessages) {
+      Serial.println("got response");
+      handleNewMessages(numNewMessages);
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
     }
-
-    // Photo file name
-    Serial.printf("Picture file name: %s\n", FILE_PHOTO);
-    File file = SPIFFS.open(FILE_PHOTO, FILE_WRITE);
-
-    // Insert the data in the photo file
-    if (!file) {
-      Serial.println("Failed to open file in writing mode");
-    }
-    else {
-      file.write(fb->buf, fb->len); // payload (image), payload length
-      Serial.print("The picture has been saved in ");
-      Serial.print(FILE_PHOTO);
-      Serial.print(" - Size: ");
-      Serial.print(file.size());
-      Serial.println(" bytes");
-    }
-    // Close the file
-    file.close();
-    esp_camera_fb_return(fb);
-
-    // check if file has been correctly saved in SPIFFS
-    ok = checkPhoto(SPIFFS);
-  } while ( !ok );
+    lastTimeBotRan = millis();
+  }
 }

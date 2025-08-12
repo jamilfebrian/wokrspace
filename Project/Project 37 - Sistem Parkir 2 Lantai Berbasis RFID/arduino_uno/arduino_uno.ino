@@ -147,12 +147,12 @@ void readRFID(){
   String UID = content.substring(1);
   Serial.println(UID);
 
-  if(isValueExists(UID)){
+  if(isValueExists(UID) ){
     Serial.print("ID ");
     Serial.print(UID);
     Serial.println(" Sudah Terdaftar. Tidak ditambahkan.");
     return;
-  } else {
+  } else if(slotAtas>0 || slotBawah>0){
     if(buka){
       Serial.println("Mobil belum memilih parkir, Harap Bersabar");
       return;
@@ -166,20 +166,26 @@ void readRFID(){
 }
 
 void printScreen(int value1, int value2){
-  if(value1 == 0){
-    lcd.setCursor(0,0); lcd.print("Prkir Atas Penuh  ");
-  } else if(value1 > 0){
-    lcd.setCursor(0,0); lcd.print("Atas  : "); lcd.print(value1); lcd.print(" Slot  ");
-  } 
-  if(value2 == 0){
-    lcd.setCursor(0,1); lcd.print("Prkir Bwh Penuh   ");
-  } else if(value2 > 0){
-    lcd.setCursor(0,1); lcd.print("Bawah : "); lcd.print(value2); lcd.print(" Slot  ");
+  if(value1 == 0 && value2 == 0){
+    lcd.setCursor(0,0); lcd.print("Semua Slot Parkir ");
+    lcd.setCursor(0,1); lcd.print("   Telah Penuh    ");
+  } else {
+    if(value1 == 0){
+      lcd.setCursor(0,0); lcd.print("Prkir Atas Penuh  ");
+    } else if(value1 > 0){
+      lcd.setCursor(0,0); lcd.print("Atas  : "); lcd.print(value1); lcd.print(" Slot  ");
+    } 
+    if(value2 == 0){
+      lcd.setCursor(0,1); lcd.print("Prkir Bwh Penuh   ");
+    } else if(value2 > 0){
+      lcd.setCursor(0,1); lcd.print("Bawah : "); lcd.print(value2); lcd.print(" Slot  ");
+    }
   }
 }
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("inisialisasi");
 
   pinMode(IR1, INPUT);
   pinMode(IR2, INPUT);
@@ -202,13 +208,13 @@ void loop() {
 
   readRFID();
 
-  if(!ir1_value && buka && slotAtas>0){
+  if(!ir1_value && buka){
     myservo2.write(180); 
     slotAtas--;
     buka = false;
   }
 
-  if(!ir4_value && buka && slotBawah>0){
+  if(!ir4_value && buka){
     myservo2.write(180); 
     slotBawah--;
     buka = false;
@@ -243,7 +249,6 @@ void loop() {
     slotBawah = 8;
   }
 
-  printArray();
   printScreen(slotAtas, slotBawah);
 
 }
