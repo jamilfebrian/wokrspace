@@ -17,7 +17,7 @@ class TemperaturePageState extends State<TemperaturePage> {
       backgroundColor: Colors.indigo.shade50,
       body: SafeArea(
         child: Container(
-          margin: const EdgeInsets.only(top: 18, left: 24, right: 24),
+          margin: const EdgeInsets.only(top: 18, left: 20, right: 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +52,7 @@ class TemperaturePageState extends State<TemperaturePage> {
                     CircularPercentIndicator(
                       radius: 150,
                       lineWidth: 25,
-                      percent: 0.55,
+                      percent: 0.85,
                       progressColor: Colors.indigo,
                       center: const Text(
                         '100\u00B0',
@@ -67,7 +67,9 @@ class TemperaturePageState extends State<TemperaturePage> {
                       child: Text(
                         'TEMPERATURE',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 25),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                            fontSize: 25),
                       ),
                     ),
                     const SizedBox(height: 20),

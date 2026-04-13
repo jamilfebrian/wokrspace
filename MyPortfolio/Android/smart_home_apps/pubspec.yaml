@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   percent_indicator: ^4.2.5
   faker: ^2.2.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
