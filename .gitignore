@@ -4,6 +4,11 @@ New folder/
 .vscode/
 __pycache__/
 
+/vendor/
+/node_modules/
+/.env
+/public/build/
+
 Images/
 Resources/
 resources/
