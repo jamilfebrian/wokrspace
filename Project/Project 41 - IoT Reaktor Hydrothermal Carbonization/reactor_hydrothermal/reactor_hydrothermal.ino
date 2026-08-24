@@ -7,15 +7,16 @@
 #include <max6675.h>
 #include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
-#include <LiquidCrystal_I2C.h> 
+#include <LiquidCrystal_I2C.h>  
 
 char ssid[] = "Tinkpad";
 char password[] = "12345678";
 
 #define BuzzerPin   23
 #define HaeterRelay 12
-#define ServoPin    13
-#define HALL_PIN 15
+#define MotorRelay  2
+#define ServoPin    27
+#define SENSOR_PIN  4 
 
 // Pin sensor suhu MAX6675
 #define SO_PIN  19
@@ -28,23 +29,28 @@ static bool activated = false;
 static unsigned long startMs = 0;
 unsigned long timerMillis = 0;
 
-const int PULSES_PER_REV = 4;
-const unsigned long TIMEOUT = 2000000;
-volatile unsigned long lastPulseTime = 0;
-volatile unsigned long pulseInterval = 0;
-float rpm;
+// Speed Sensor Variabel
+const int SLOTS_PER_REV = 1;
+volatile unsigned long last_micros = 0;
+volatile unsigned long pulse_interval = 0;
+volatile bool new_pulse = false;
+static float rpm;
 
 int setPoint = 0;
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 MAX6675 thermocouple(SCK_PIN, CS_PIN, SO_PIN);
 
-void IRAM_ATTR hallInterrupt(){
-  unsigned long currentTime = micros();
-  if (lastPulseTime != 0)  {
-    pulseInterval = currentTime - lastPulseTime;
+void IRAM_ATTR optoISR() {
+  unsigned long current_micros = micros();
+  unsigned long duration = current_micros - last_micros;
+  
+  // Debounce optik sederhana (mengabaikan pembacaan di bawah 1ms)
+  if (duration > 1000) { 
+    pulse_interval = duration;
+    last_micros = current_micros;
+    new_pulse = true;
   }
-  lastPulseTime = currentTime;
 }
 
 void buzzer(int index = 3, int timerBuzzer = 80){
@@ -72,21 +78,30 @@ void connectWifi(){
 }
 
 void HallSensor(){
-  unsigned long interval;
-  unsigned long lastPulse;
+  
+  if (new_pulse) {
+    // Ambil data interval secara aman dari ISR
+    noInterrupts();
+    unsigned long interval = pulse_interval;
+    new_pulse = false;
+    interrupts();
 
-  noInterrupts();
-  interval = pulseInterval;
-  lastPulse = lastPulseTime;
-  interrupts();
+    // Rumus: (60.000.000 mikrodetik / interval per pulsa) / jumlah lubang
+    rpm = (60000000.0 / interval) / SLOTS_PER_REV;
+  }
 
-  unsigned long currentTime = micros();
-  rpm = 0;
+  // Timeout jika roda berhenti (> 2 detik tanpa pulsa)
+  if (micros() - last_micros > 2000000) {
+    rpm = 0.0;
+  }
 
-  if (lastPulse != 0 && (currentTime - lastPulse) < TIMEOUT && interval > 0){
-    rpm = (60000000.0 / interval) / PULSES_PER_REV;
-  } else {
-    rpm = 0;
+  // Cetak hasil ke Serial Monitor tiap 500 ms
+  static unsigned long last_print = 0;
+  if (millis() - last_print >= 500) {
+    last_print = millis();
+    Serial.print("Kecepatan Rotasi: ");
+    Serial.print(rpm, 1);
+    Serial.println(" RPM");
   }
 }
 
@@ -95,7 +110,8 @@ void setup() {
   Serial.begin(115200);
   pinMode(BuzzerPin, OUTPUT);
   pinMode(HaeterRelay, OUTPUT);
-  pinMode(HALL_PIN, INPUT_PULLUP);
+  pinMode(MotorRelay, OUTPUT);
+  pinMode(SENSOR_PIN, INPUT_PULLUP);
 
   lcd.init(); lcd.backlight(); lcd.clear();
 
@@ -104,13 +120,11 @@ void setup() {
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, password);
   Serial.println("terhubung");
 
-  attachInterrupt(
-    digitalPinToInterrupt(HALL_PIN),
-    hallInterrupt,
-    FALLING
-  );
-  
-  myservo.attach(ServoPin);
+  attachInterrupt(digitalPinToInterrupt(SENSOR_PIN), optoISR, RISING);
+
+  ESP32PWM::allocateTimer(0);
+  myservo.setPeriodHertz(50);
+  myservo.attach(ServoPin, 500, 2400);
 
   Blynk.virtualWrite(V1, 0);
   Blynk.virtualWrite(V3, 0);
@@ -134,18 +148,20 @@ void loop() {
 
   
     if(suhu >= 210){
-      digitalWrite(HaeterRelay, HIGH);
-    } else if(suhu < 205){
       digitalWrite(HaeterRelay, LOW);
+    } else if(suhu < 205){
+      digitalWrite(HaeterRelay, HIGH);
     }
  
   if(activated && startMs!=0){
     if(millis() - timerMillis < startMs){
+      digitalWrite(MotorRelay, HIGH);
       myservo.write(setPoint);
     } else {
       Blynk.virtualWrite(V1, 0);
       Blynk.virtualWrite(V3, 0);
       myservo.write(0); setPoint=0;
+      digitalWrite(MotorRelay, LOW);
       activated = false;
     }
   } else {
@@ -165,6 +181,7 @@ BLYNK_WRITE(V1){
     activated = false;
     setPoint = 0;
     Blynk.virtualWrite(V3, 0);
+    digitalWrite(MotorRelay, LOW);
     myservo.write(setPoint);
   }
 }
